@@ -1,0 +1,97 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+	<head>
+
+		<script type="text/javascript" src="sax_xml.js"></script>
+		<script type="text/javascript" src="../jsrelaxngvalidator/sax.js"></script>
+		<script type="text/javascript" src="../jsrelaxngvalidator/dom_utils.js"></script>
+		<script type="text/javascript" src="../jsrelaxngvalidator/applyXslt.js"></script>
+		<script type="text/javascript" src="../jsrelaxngvalidator/relaxng_validator.js"></script>
+		<script type="text/javascript" src="../jsrelaxngvalidator/validator_functions.js"></script>
+		<script type="text/javascript" src="../jsrelaxngvalidator/validator_objects.js"></script>
+		<script type="text/javascript">
+		
+		var xml = loadXml3();
+		
+		var relaxng = createDocumentFromText(loadRelaxng3());
+		
+		var stepIndex = 0;
+		
+		var stepDisplayed = -1;
+		
+		var idChildNode = 'childNode_step';
+		var idPattern = 'pattern_step';
+		
+		function start() {
+			div = document.getElementById("msg");
+			var relaxNGValidator = new RelaxNGValidator(div,relaxng,true);
+			var saxParser = new SAXParser(relaxNGValidator);
+			relaxNGValidator.setSaxParser(saxParser);
+			saxParser.parse(xml);
+		}
+		
+		function recordStep(message, pattern, childNode) {
+			var patternDiv = document.createElement('div');
+			patternDiv.id = idPattern + stepIndex;
+			patternDiv.innerHTML = "<h4>" + message + "</h4>" + pattern.toString();
+			patternDiv.style.display = 'none';
+			document.getElementById('pattern').appendChild(patternDiv);
+			var childNodeDiv = document.createElement('div');
+			childNodeDiv.id = idChildNode + stepIndex;
+			childNodeDiv.innerHTML = childNode.toString();
+			childNodeDiv.style.display = 'none';
+			document.getElementById('childNode').appendChild(childNodeDiv);
+			stepIndex++;
+		}
+		
+		function seePreviousStep() {
+			if (stepDisplayed > 0) {
+				document.getElementById(idChildNode + stepDisplayed).style.display = 'none';
+				document.getElementById(idPattern + stepDisplayed).style.display = 'none';
+				stepDisplayed--;
+				document.getElementById(idChildNode + stepDisplayed).style.display = '';
+				document.getElementById(idPattern + stepDisplayed).style.display = '';
+			}
+		}
+		
+		function seeNextStep() {
+			if (stepDisplayed > -1) {
+				document.getElementById(idChildNode + stepDisplayed).style.display = 'none';
+				document.getElementById(idPattern + stepDisplayed).style.display = 'none';
+			}
+			stepDisplayed++;
+			var childNodeToDisplay = document.getElementById(idChildNode + stepDisplayed);
+			var patternToDisplay = document.getElementById(idPattern + stepDisplayed);
+			if (childNodeToDisplay && patternToDisplay) {
+				childNodeToDisplay.style.display = '';
+				patternToDisplay.style.display = '';
+			} else {
+				stepDisplayed--;
+			}
+		}
+		
+		</script>
+		
+		<style type="text/css">
+			table {
+				border: solid 1px;
+				font-size: x-small;
+			}
+		</style>
+		
+	</head>
+	
+	<body>
+		<div id="msg"></div>
+		<input type="button" onclick="start()"/>
+		
+		<input type="button" value="<" onclick="seePreviousStep()"/>
+		<input type="button" value=">" onclick="seeNextStep()"/>
+		<div id="steps">
+			<h4><span class="grey">validation </span><span class="yellow">pattern</span></h4>
+			<div id="pattern"></div>
+			<h4><span class="grey">child node </span><span class="yellow">being validated</span></h4>
+			<div id="childNode"></div>
+		</div>
+	</body>
+</html>
