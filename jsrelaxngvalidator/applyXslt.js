@@ -53,7 +53,7 @@ function loadXMLDoc(fname) {
 	    }
 	    // code for Mozilla, Firefox, Opera, etc.
 	    else if (document.implementation && document.implementation.createDocument) {
-	        xmlDoc = document.implementation.createDocument("","",null);
+	        xmlDoc = document.implementation.createDocument("", "", null);
 	    } else {
 	        alert('Your browser cannot handle this script');
 	    }
@@ -71,7 +71,7 @@ function loadFile(fname) {
 		xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
 	}
 	if (xmlhttp != null) {
-		xmlhttp.open("GET",fname,false);
+		xmlhttp.open("GET", fname, false);
 		xmlhttp.send(null);
 		if (xmlhttp.readyState == 4) {
 			return xmlhttp.responseText;
@@ -81,24 +81,46 @@ function loadFile(fname) {
 	}
 }
 
-function applyXslt(xml,xsl) {
-    var xsl = loadXMLDoc(xsl);
-    // code for IE
+function applyXslt(xml, xsl, asFragment, paramMap) {
+    // code for IE 
     if (window.ActiveXObject) {
-        var ex = xml.transformNode(xsl);
-        return ex;
+        var xslt = new ActiveXObject("Msxml2.XSLTemplate.3.0" );
+		var xslDoc = new ActiveXObject("Msxml2.FreeThreadedDOMDocument.3.0" );
+		xslDoc.async = false;
+		xslDoc.load(xsl);
+		xslt.stylesheet = xslDoc;
+		var xslProc = xslt.createProcessor();
+		xslProc.input = xml;
+		if (paramMap) {
+			for (var i in paramMap) {
+				xsltProcessor.addParameter(i, paramMap[i]);
+			}
+		}
+		xslProc.transform();
+		return xslProc.output;
     }
     // code for Mozilla, Firefox, Opera, etc.
     else if (document.implementation && document.implementation.createDocument) {
+		var xsl = loadXMLDoc(xsl);
         var xsltProcessor = new XSLTProcessor();
         xsltProcessor.importStylesheet(xsl);
-        var resultDocument = xsltProcessor.transformToFragment(xml,document);
+		if (paramMap) {
+			for (var i in paramMap) {
+				xsltProcessor.setParameter(null, i, paramMap[i]);
+			}
+		}
+		var resultDocument;
+		if (asFragment) {
+			resultDocument = xsltProcessor.transformToFragment(xml, document);
+		} else {
+			resultDocument = xsltProcessor.transformToDocument(xml, document);
+		}
         return resultDocument;
     }
 }
 
-function applyXsltOnText(xml,xsl) {
+function applyXsltOnText(xml, xsl) {
     var xml = createDocumentFromText(xml);
-	var result = applyXslt(xml,xsl);
+	var result = applyXslt(xml, xsl);
     return innerXML(result);
 }
