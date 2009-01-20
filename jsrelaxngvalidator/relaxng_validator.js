@@ -35,9 +35,10 @@ knowledge of the CeCILL license and that you accept its terms.
 
 */
 
-function RelaxNGValidator(div, relaxng, debug) {
-	//div is where messages will be dumped
-	this.div = div;
+function RelaxNGValidator(result, sax_events, relaxng, debug) {
+	//result is where messages will be dumped
+	this.result = result;
+	this.sax_events = sax_events;
 	if (debug) {
 		this.debug = true;
 	}
@@ -122,7 +123,7 @@ function RelaxNGValidator(div, relaxng, debug) {
 
 	*/
 	this.startDocument = function() {
-		this.div.innerHTML += "startDocument<br/>";
+		this.sax_events.innerHTML += "startDocument<br/>";
 		var baseURI = "";
 		if (this.rootNode.baseURI) {
 			baseURI = this.rootNode.baseURI;
@@ -139,7 +140,7 @@ function RelaxNGValidator(div, relaxng, debug) {
 	};
 	
 	this.startElement = function(namespaceURI, localName, qName, atts) {
-		this.div.innerHTML += "startElement [" + namespaceURI + "] [" + localName + "] [" + qName + "]<br/>";
+		this.sax_events.innerHTML += "startElement [" + namespaceURI + "] [" + localName + "] [" + qName + "]<br/>";
 		this.displayAtts(atts);
 		
 		var attributeNodes = new Array();
@@ -167,16 +168,6 @@ function RelaxNGValidator(div, relaxng, debug) {
 			newElement.setParentNode(this.currentElementNode);
 			this.currentElementNode = newElement;
 		}
-			
-		/*var childPattern = this.validatorFunctions.childDeriv(this.context, this.pattern, this.childNode);
-		if (this.debug) {
-			this.debugMsg("childPattern = " + childPattern.toString() + "<br/>");
-		}
-		if (childPattern instanceof NotAllowed) {
-			this.fireRelaxngError("element " + qName + " not valid<br/>");
-			this.fireRelaxngError(childPattern.toString());
-		}
-		*/
 	};
 
 	/*
@@ -342,15 +333,7 @@ function RelaxNGValidator(div, relaxng, debug) {
 	validates again the tree in order to detect missing element
 	*/
 	this.endElement = function(namespaceURI,localName,qName) {
-		this.div.innerHTML += "endElement [" + namespaceURI + "] [" + localName + "] [" + qName + "]<br/>";
-		/*var childPattern = this.validatorFunctions.childDeriv(this.context, this.pattern, this.childNode);
-		if (this.debug) {
-			this.debugMsg("childPattern = " + childPattern.toString() + "<br/>");
-		}
-		if (childPattern instanceof NotAllowed) {
-			this.fireRelaxngError("element " + qName + " not valid<br/>");
-			this.fireRelaxngError(childPattern.toString());
-		}*/
+		this.sax_events.innerHTML += "endElement [" + namespaceURI + "] [" + localName + "] [" + qName + "]<br/>";
 		if (this.currentElementNode.parentNode) {
 			this.currentElementNode = this.currentElementNode.parentNode;
 		}
@@ -359,35 +342,35 @@ function RelaxNGValidator(div, relaxng, debug) {
 	
 	
 	this.startPrefixMapping = function(prefix, uri) {
-		this.div.innerHTML += "startPrefixMapping [" + prefix + "] [" + uri + "]<br/>";
+		this.sax_events.innerHTML += "startPrefixMapping [" + prefix + "] [" + uri + "]<br/>";
 		this.instanceContext.map[prefix] = uri;
 	};
 
 	this.endPrefixMapping = function(prefix) {
-		this.div.innerHTML += "endPrefixMapping [" + prefix + "]<br/>";
+		this.sax_events.innerHTML += "endPrefixMapping [" + prefix + "]<br/>";
 		delete this.instanceContext.map[prefix];
 	};
 
 	this.processingInstruction = function(target, data) {
-		this.div.innerHTML += "processingInstruction [" + target + "] [" + data + "]<br/>";
+		this.sax_events.innerHTML += "processingInstruction [" + target + "] [" + data + "]<br/>";
 	};
 
 	this.ignorableWhitespace = function(ch, start, length) {
-		this.div.innerHTML += "ignorableWhitespace [" + ch + "] [" + start + "] [" + length + "]<br/>";
+		this.sax_events.innerHTML += "ignorableWhitespace [" + ch + "] [" + start + "] [" + length + "]<br/>";
 	};
 
 	this.characters = function(ch, start, length) {
-		this.div.innerHTML += "characters [" + ch + "] [" + start + "] [" + length + "]<br/>";
+		this.sax_events.innerHTML += "characters [" + ch + "] [" + start + "] [" + length + "]<br/>";
 		var newText = new TextNode(ch);
 		this.currentElementNode.childNodes.push(newText);
 	};
 
 	this.skippedEntity = function(name) {
-		this.div.innerHTML += "skippedEntity [" + name + "]<br/>";
+		this.sax_events.innerHTML += "skippedEntity [" + name + "]<br/>";
 	};
 
 	this.endDocument = function() {
-		this.div.innerHTML += "endDocument<br/>";
+		this.sax_events.innerHTML += "endDocument<br/>";
 		if (this.debug) {
 			this.debugMsg("validating childNode =<br/>" + this.childNode.toString());
 		}
@@ -400,32 +383,32 @@ function RelaxNGValidator(div, relaxng, debug) {
 		} else if (childPattern instanceof MissingElement) {
 			this.fireRelaxngError("missing " + childPattern.missingElements.length + " elements in document : " + childPattern.toString() + "<br/>");
 		} else {
-			this.div.innerHTML += "<h4>That XML is valid</h4>";
+			this.result.innerHTML += "<h4>That XML is valid</h4>";
 		}
 	};
 
 	this.setDocumentLocator = function(locator) {
-		this.div.innerHTML += "setDocumentLocator [" + locator + "]<br/>";
+		this.sax_events.innerHTML += "setDocumentLocator [" + locator + "]<br/>";
 	};
 
 	this.displayAtts = function(atts) {
 		for (i in atts) {
-			this.div.innerHTML += "[" + i + "] [" + atts[i] + "]<br/>";
+			this.sax_events.innerHTML += "[" + i + "] [" + atts[i] + "]<br/>";
 		}
 	};
 	
 	this.debugMsg = function(message) {
-		this.div.innerHTML += "debug : " + message + "<br/>";
+		this.sax_events.innerHTML += "debug : " + message + "<br/>";
 	};
 	
 	this.error = function(char, index, message) {
-		this.div.innerHTML += "invalid char : [" + char + "] at index : " + index + "<br/>";
-		this.div.innerHTML += "message is : [" + message + "]<br/>";
+		this.result.innerHTML += "invalid char : [" + char + "] at index : " + index + "<br/>";
+		this.result.innerHTML += "message is : [" + message + "]<br/>";
 	};
 
 	this.relaxngError = function(char, index, message) {
-		this.div.innerHTML += "validation error at char : [" + char + "] at index : " + index + "<br/>";
-		this.div.innerHTML += "message is : [" + message + "]<br/>";
+		this.result.innerHTML += "validation error at char : [" + char + "] at index : " + index + "<br/>";
+		this.result.innerHTML += "message is : [" + message + "]<br/>";
 	};
 	
 }

@@ -35,6 +35,9 @@ knowledge of the CeCILL license and that you accept its terms.
 
 */
 
+/*
+that is the implementation of the following algorithm : http://www.thaiopensource.com/relaxng/derivative.html
+*/
 function ValidatorFunctions(relaxNGValidator) {
 	this.relaxNGValidator = relaxNGValidator;
 
@@ -502,19 +505,27 @@ function ValidatorFunctions(relaxNGValidator) {
 	*/
 	this.attDeriv = function(context, pattern, attributeNode) {
 		if (pattern instanceof After) {
-			return this.after(this.attDeriv(context, pattern.pattern1, attributeNode), pattern.pattern2);
+            var attDer = this.attDeriv(context, pattern.pattern1, attributeNode);
+			return this.after(attDer, pattern.pattern2);
 		} else if (pattern instanceof Choice) {
-			return this.choice(this.attDeriv(context, pattern.pattern1, attributeNode), this.attDeriv(context, pattern.pattern2, attributeNode));
+            var choice1 = this.attDeriv(context, pattern.pattern1, attributeNode);
+            var choice2 = this.attDeriv(context, pattern.pattern2, attributeNode);
+			return this.choice(choice1, choice2);
 		} else if (pattern instanceof Group) {
-			var choice1 = this.group(this.attDeriv(context, pattern.pattern1, attributeNode), pattern.pattern2);
-			var choice2 = this.group(pattern.pattern1, this.attDeriv(context, pattern.pattern2, attributeNode));
+            var attDeriv1 = this.attDeriv(context, pattern.pattern1, attributeNode);
+			var choice1 = this.group(attDeriv1, pattern.pattern2);
+            var attDeriv2 = this.attDeriv(context, pattern.pattern2, attributeNode);
+			var choice2 = this.group(pattern.pattern1, attDeriv2);
 			return this.choice(choice1, choice2);
 		} else if (pattern instanceof Interleave) {
-			var choice1 = this.interleave(this.attDeriv(context, pattern.pattern1, attributeNode), pattern.pattern2);
-			var choice2 = this.interleave(pattern.pattern1, this.attDeriv(context, pattern.pattern2, attributeNode));
+            var attDeriv1 = this.attDeriv(context, pattern.pattern1, attributeNode);
+			var choice1 = this.interleave(attDeriv1, pattern.pattern2);
+            var attDeriv2 = this.attDeriv(context, pattern.pattern2, attributeNode);
+			var choice2 = this.interleave(pattern.pattern1, attDeriv2);
 			return this.choice(choice1, choice2);
 		} else if (pattern instanceof OneOrMore) {
-			return this.group(this.attDeriv(context, pattern.pattern, attributeNode), this.choice(pattern.pattern, new Empty()));
+            var attDer = this.attDeriv(context, pattern.pattern, attributeNode);
+			return this.group(attDer, this.choice(pattern.pattern, new Empty()));
 		} else if (pattern instanceof Attribute) {
 			if (this.contains(pattern.nameClass, attributeNode.qName) && this.valueMatch(context, pattern.pattern, attributeNode.string)) {
 				return new Empty();
@@ -561,11 +572,17 @@ function ValidatorFunctions(relaxNGValidator) {
 		if (pattern instanceof After) {
 			return this.after(this.startTagCloseDeriv(pattern.pattern1, childNode), pattern.pattern2);
 		} else if (pattern instanceof Choice) {
-			return this.choice(this.startTagCloseDeriv(pattern.pattern1, childNode), this.startTagCloseDeriv(pattern.pattern2, childNode));
+            var choice1 = this.startTagCloseDeriv(pattern.pattern1, childNode);
+            var choice2 = this.startTagCloseDeriv(pattern.pattern2, childNode);
+			return this.choice(choice1, choice2);
 		} else if (pattern instanceof Group) {
-			return this.group(this.startTagCloseDeriv(pattern.pattern1, childNode), this.startTagCloseDeriv(pattern.pattern2, childNode));
+            var group1 = this.startTagCloseDeriv(pattern.pattern1, childNode);
+            var group2 = this.startTagCloseDeriv(pattern.pattern2, childNode);
+			return this.group(group1, group2);
 		} else if (pattern instanceof Interleave) {
-			return this.interleave(this.startTagCloseDeriv(pattern.pattern1, childNode), this.startTagCloseDeriv(pattern.pattern2, childNode));
+            var interleave1 = this.startTagCloseDeriv(pattern.pattern1, childNode);
+            var interleave2 = this.startTagCloseDeriv(pattern.pattern2, childNode);
+			return this.interleave(interleave1, interleave2);
 		} else if (pattern instanceof OneOrMore) {
 			return this.oneOrMore(this.startTagCloseDeriv(pattern.pattern, childNode));
 		} else if (pattern instanceof Attribute) {
@@ -584,7 +601,7 @@ function ValidatorFunctions(relaxNGValidator) {
 		if (pattern instanceof NotAllowed || pattern instanceof MissingElement) {
 			return pattern;
 		} else {
-			return OneOrMore(pattern);
+			return new OneOrMore(pattern);
 		}
 	}
 	
@@ -660,7 +677,9 @@ function ValidatorFunctions(relaxNGValidator) {
 	*/
 	this.endTagDeriv = function(pattern, childNode) {
 		if (pattern instanceof Choice) {
-			return this.choice(this.endTagDeriv(pattern.pattern1, childNode), this.endTagDeriv(pattern.pattern2, childNode));
+            var choice1 = this.endTagDeriv(pattern.pattern1, childNode);
+            var choice2 = this.endTagDeriv(pattern.pattern2, childNode);
+			return this.choice(choice1, choice2);
 		} else if (pattern instanceof After) {
 			if (this.nullable(pattern.pattern1)) {
 				return pattern.pattern2;

@@ -36,6 +36,10 @@ knowledge of the CeCILL license and that you accept its terms.
 */
 
 /*
+that is the implementation of the following algorithm : http://www.thaiopensource.com/relaxng/derivative.html
+*/
+
+/*
 First, we define the datatypes we will be using. URIs and local names are just strings.
 
 type Uri = String
