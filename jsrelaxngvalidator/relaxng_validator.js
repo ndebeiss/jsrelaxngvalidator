@@ -80,12 +80,12 @@ function RelaxNGValidator(result, sax_events, relaxng, debug) {
 	this.extractNamespaces(relaxng.documentElement, relaxng, this.relaxng_namespaces);
 	
 	//first transformation is to import included schemas
-	this.relaxng = applyXslt(relaxng, "sax/rng-simplification/rng-simplification_step1.xsl");
+	this.relaxng = applyXslt(relaxng, "../jsrelaxngvalidator/rng-simplification/rng-simplification_step1.xsl");
 	this.extractNamespaces(this.relaxng.documentElement, this.relaxng, this.relaxng_namespaces);
 	
 	//TODO 18
 	for (var i = 2 ; i < 17 ; i++) {
-		this.relaxng = applyXslt(this.relaxng, "sax/rng-simplification/rng-simplification_step" + i + ".xsl");
+		this.relaxng = applyXslt(this.relaxng, "../jsrelaxngvalidator/rng-simplification/rng-simplification_step" + i + ".xsl");
 		//work around the bug of firefox XSLT processor which does not copy namespaces mappings with function xsl:copy
 		this.dumpNamespaces(this.relaxng.documentElement);
 	}

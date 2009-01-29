@@ -408,16 +408,3 @@ return "<?xml version=\"1.0\" encoding=\"UTF-8\"?> \
 		</rng:grammar>";
 		
 }
-/*
-
-<rng:data type=\"string\"/> \
-					                    <rng:list> \
-							                <rng:zeroOrMore> \
-							                    <rng:choice> \
-							                        <rng:value>X-ON</rng:value> \
-							                        <rng:value>X-OFF</rng:value> \
-							                        <rng:value>Y-ON</rng:value> \
-							                        <rng:value>Y-OFF</rng:value> \
-							                    </rng:choice> \
-							                </rng:zeroOrMore> \
-							            </rng:list> \ */
