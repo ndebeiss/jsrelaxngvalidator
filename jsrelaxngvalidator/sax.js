@@ -1,8 +1,7 @@
 /*
-
 Copyright or © or Copr. Nicolas Debeissat
 
-debeissat.nicolas@gmail.com
+nicolas.debeissat@gmail.com (http://debeissat.nicolas.free.fr/)
 
 This software is a computer program whose purpose is to parse XML
 files respecting SAX2 specifications.
