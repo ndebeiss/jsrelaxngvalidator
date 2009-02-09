@@ -214,16 +214,6 @@ function NotAllowed(message, pattern, childNode) {
 		return "<table><tr><th>NotAllowed</th></tr><tr><td>message</td><td>" + this.message + "</td></tr><tr><td>pattern</td><td>" + this.pattern.toString() + "</td></tr><tr><td>childNode</td><td>" + this.childNode.toString() + "</td></tr></table>";
 	}
 }
-function MissingElement(missingElements) {
-	this.missingElements = missingElements;
-	this.toString = function() {
-		var string = "<table><tr><th>MissingElement</th></tr>";
-		for (var i in this.missingElements) {
-			string += "<tr><td>" + this.missingElements[i].toString() + "</td></tr>";
-		}
-		return string + "</table>";
-	}
-}
 function Text() {
 	this.toString = function() {
 		return "<table><tr><th>Text</th></tr></table>";

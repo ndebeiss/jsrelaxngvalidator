@@ -37,8 +37,9 @@ knowledge of the CeCILL license and that you accept its terms.
 /*
 that is the implementation of the following algorithm : http://www.thaiopensource.com/relaxng/derivative.html
 */
-function ValidatorFunctions(relaxNGValidator) {
+function ValidatorFunctions(relaxNGValidator, datatypeLibrary) {
 	this.relaxNGValidator = relaxNGValidator;
+	this.datatypeLibrary = datatypeLibrary;
 
 	this.debug = function(message, pattern, childNode) {
 		recordStep(message, pattern, childNode);
@@ -109,8 +110,6 @@ function ValidatorFunctions(relaxNGValidator) {
 		} else if (pattern instanceof DataExcept) {
 			return false;
 		} else if (pattern instanceof NotAllowed) {
-			return false;
-		} else if (pattern instanceof MissingElement) {
 			return false;
 		} else if (pattern instanceof Empty) {
 			return true;
@@ -197,20 +196,12 @@ function ValidatorFunctions(relaxNGValidator) {
 		} else if (pattern instanceof Text) {
 			return pattern;
 		} else if (pattern instanceof Value) {
-			if (this.datatypeEqual(pattern.datatype, pattern.string, pattern.context, string, context)) {
-				return new Empty();
-			} else {
-				return new NotAllowed("value invalid, found [" + string + "]", pattern, childNode);
-			}
+			return this.datatypeEqual(pattern.datatype, pattern.string, pattern.context, string, context);
 		} else if (pattern instanceof Data) {
-			if (this.datatypeAllows(pattern.datatype, pattern.paramList, string, context)) {
-				return new Empty();
-			} else {
-				return new NotAllowed("data invalid, found [" + string + "]", pattern, childNode);
-			}
+			return this.datatypeAllows(pattern.datatype, pattern.paramList, string, context);
 		} else if (pattern instanceof DataExcept) {
-			var datatypeAllow = this.datatypeAllows(pattern.datatype, pattern.paramList, string, context);
-			if (datatypeAllow && !this.nullable(this.textDeriv(context, pattern.pattern, string, childNode))) {
+			var datatypeAllowed = this.datatypeAllows(pattern.datatype, pattern.paramList, string, context);
+			if (datatypeAllowed && !this.nullable(this.textDeriv(context, pattern.pattern, string, childNode))) {
 				return new Empty();
 			} else {
 				return new NotAllowed("data invalid, found [" + string + "]", pattern, childNode);
@@ -222,7 +213,7 @@ function ValidatorFunctions(relaxNGValidator) {
 			} else {
 				return new NotAllowed("list invalid, found [" + string + "]", pattern, childNode);
 			}
-		} else if (pattern instanceof MissingElement || pattern instanceof NotAllowed) {
+		} else if (pattern instanceof NotAllowed) {
 			return pattern;
 		} else {
 			return new NotAllowed("invalid pattern", pattern, childNode);
@@ -255,9 +246,9 @@ function ValidatorFunctions(relaxNGValidator) {
 	choice p1 p2 = Choice p1 p2
 	*/
 	this.choice = function(pattern1, pattern2) {
-		if (pattern2 instanceof NotAllowed || pattern2 instanceof MissingElement) {
+		if (pattern2 instanceof NotAllowed) {
 			return pattern1;
-		} else if (pattern1 instanceof NotAllowed || pattern2 instanceof MissingElement) {
+		} else if (pattern1 instanceof NotAllowed) {
 			return pattern2;
 		} else {
 			return new Choice(pattern1, pattern2);
@@ -277,13 +268,6 @@ function ValidatorFunctions(relaxNGValidator) {
 			return pattern1;
 		} else if (pattern2 instanceof NotAllowed) {
 			return pattern2;
-		} else if (pattern1 instanceof MissingElement) {
-			if (pattern2 instanceof MissingElement) {
-				return new MissingElement(pattern1.missingElements.concat(pattern2.missingElements));
-			}
-			return new MissingElement(pattern1.missingElements);
-		} else if (pattern2 instanceof MissingElement) {
-			return new MissingElement(pattern2.missingElements);
 		} else if (pattern2 instanceof Empty) {
 			return pattern1;
 		} else if (pattern1 instanceof Empty) {
@@ -306,13 +290,6 @@ function ValidatorFunctions(relaxNGValidator) {
 			return pattern1;
 		} else if (pattern2 instanceof NotAllowed) {
 			return pattern2;
-		} else if (pattern1 instanceof MissingElement) {
-			if (pattern2 instanceof MissingElement) {
-				return new MissingElement(pattern1.missingElements.concat(pattern2.missingElements));
-			}
-			return new MissingElement(pattern1.missingElements);
-		} else if (pattern2 instanceof MissingElement) {
-			return pattern2;
 		} else if (pattern2 instanceof Empty) {
 			return pattern1;
 		} else if (pattern1 instanceof Empty) {
@@ -329,9 +306,9 @@ function ValidatorFunctions(relaxNGValidator) {
 	after p1 p2 = After p1 p2
 	*/
 	this.after = function(pattern1, pattern2) {
-		if (pattern2 instanceof NotAllowed || pattern2 instanceof MissingElement) {
+		if (pattern2 instanceof NotAllowed) {
 			return pattern1;
-		} else if (pattern1 instanceof NotAllowed || pattern1 instanceof MissingElement) {
+		} else if (pattern1 instanceof NotAllowed) {
 			return pattern2;
 		} else {
 			return new After(pattern1, pattern2);
@@ -344,11 +321,18 @@ function ValidatorFunctions(relaxNGValidator) {
 	datatypeAllows ("",  "token") [] _ _ = True
 	*/
 	this.datatypeAllows = function(datatype, paramList, string, context) {
-		return true;
 		if (datatype.uri == "") {
-			if (datatype.localName == "string" || datatype.localName == "token") {
+			if (datatype.localName == "string" && paramList.length == 0) {
 				return true;
+			} else if (datatype.localName == "token" && paramList.length == 0) {
+				return true;
+			} else {
+				return false;
 			}
+		} else if (!datatypeLibrary) {
+			return true;
+		} else {
+			return datatypeLibrary.datatypeAllows(datatype, paramList, string, context);
 		}
 	}
 
@@ -364,6 +348,10 @@ function ValidatorFunctions(relaxNGValidator) {
 			} else if (datatype.localName == "token") {
 				return this.normalizeWhitespace(string1) == this.normalizeWhitespace(string2);
 			}
+		} else if (!datatypeLibrary) {
+			return true;
+		} else {
+			return datatypeLibrary.datatypeEqual(datatype, string1, context1, string2, context2);
 		}
 	}
 
@@ -386,7 +374,7 @@ function ValidatorFunctions(relaxNGValidator) {
 			return this.after(pattern.pattern1, funct.apply(pattern.pattern2));
 		} else if (pattern instanceof Choice) {
 			return this.choice(this.applyAfter(funct, pattern.pattern1), this.applyAfter(funct, pattern.pattern2));
-		} else if (pattern instanceof NotAllowed || pattern instanceof MissingElement) {
+		} else if (pattern instanceof NotAllowed) {
 			return pattern;
 		}
 	}
@@ -444,7 +432,7 @@ function ValidatorFunctions(relaxNGValidator) {
 		} else if (pattern instanceof After) {
 			var p1Deriv = this.startTagOpenDeriv(pattern.pattern1, qName, childNode);		
 			return this.applyAfter(new this.flip(this.after, pattern.pattern2), p1Deriv);
-		} else if (pattern instanceof MissingElement || pattern instanceof NotAllowed) {
+		} else if (pattern instanceof NotAllowed) {
 			return pattern;
 		} else {
 			return new NotAllowed("invalid pattern", pattern, childNode);
@@ -526,12 +514,13 @@ function ValidatorFunctions(relaxNGValidator) {
             var attDer = this.attDeriv(context, pattern.pattern, attributeNode);
 			return this.group(attDer, this.choice(pattern.pattern, new Empty()));
 		} else if (pattern instanceof Attribute) {
-			if (this.contains(pattern.nameClass, attributeNode.qName) && this.valueMatch(context, pattern.pattern, attributeNode.string)) {
+			var attributeNameCheck = this.contains(pattern.nameClass, attributeNode.qName);
+			if (attributeNameCheck && this.valueMatch(context, pattern.pattern, attributeNode.string)) {
 				return new Empty();
 			} else {
 				return new NotAllowed("invalid attribute", pattern, attributeNode);
 			}
-		} else if (pattern instanceof MissingElement || pattern instanceof NotAllowed) {
+		} else if (pattern instanceof NotAllowed) {
 			return pattern;
 		} else {
 			return new NotAllowed("invalid attributeNode", pattern, attributeNode);
@@ -597,7 +586,7 @@ function ValidatorFunctions(relaxNGValidator) {
 	oneOrMore p = OneOrMore p
 	*/
 	this.oneOrMore = function(pattern) {
-		if (pattern instanceof NotAllowed || pattern instanceof MissingElement) {
+		if (pattern instanceof NotAllowed) {
 			return pattern;
 		} else {
 			return new OneOrMore(pattern);
@@ -683,7 +672,7 @@ function ValidatorFunctions(relaxNGValidator) {
 			if (this.nullable(pattern.pattern1)) {
 				return pattern.pattern2;
 			} else {
-				return new NotAllowed("missing content", pattern, childNode);
+				return new NotAllowed("missing content", pattern.pattern1, childNode);
 			}
 		} else if (pattern instanceof NotAllowed) {
 			return pattern;
@@ -691,57 +680,5 @@ function ValidatorFunctions(relaxNGValidator) {
 			return new NotAllowed("invalid pattern", pattern, childNode);
 		}
 	}
-
-	this.nullable_withoutElement = function(pattern) {
-		if (pattern instanceof Group) {
-			return this.nullable_withoutElement(pattern.pattern1) && this.nullable_withoutElement(pattern.pattern2);
-		} else if (pattern instanceof Interleave) {
-			return this.nullable_withoutElement(pattern.pattern1) && this.nullable_withoutElement(pattern.pattern2);
-		} else if (pattern instanceof Choice) {
-			return this.nullable_withoutElement(pattern.pattern1) || this.nullable_withoutElement(pattern.pattern2);
-		} else if (pattern instanceof OneOrMore) {
-			return this.nullable_withoutElement(pattern.pattern);
-		} else if (pattern instanceof Element) {
-			return true;
-		} else if (pattern instanceof Attribute) {
-			return false;
-		} else if (pattern instanceof List) {
-			return false;
-		} else if (pattern instanceof Value) {
-			return false;
-		} else if (pattern instanceof Data) {
-			return false;
-		} else if (pattern instanceof DataExcept) {
-			return false;
-		} else if (pattern instanceof NotAllowed) {
-			return false;
-		} else if (pattern instanceof MissingElement) {
-			return true;
-		} else if (pattern instanceof Empty) {
-			return true;
-		} else if (pattern instanceof Text) {
-			return true;
-		} else if (pattern instanceof After) {
-			return false;
-		}
-	}
-
-	this.getMissingElements = function(pattern, missingElements) {
-		if (pattern instanceof Group) {
-			this.getMissingElements(pattern.pattern1, missingElements);
-			this.getMissingElements(pattern.pattern2, missingElements);
-		} else if (pattern instanceof Interleave) {
-			this.getMissingElements(pattern.pattern1, missingElements);
-			this.getMissingElements(pattern.pattern2, missingElements);
-		} else if (pattern instanceof Choice) {
-			this.getMissingElements(pattern.pattern1, missingElements);
-			this.getMissingElements(pattern.pattern2, missingElements);
-		} else if (pattern instanceof OneOrMore) {
-			this.getMissingElements(pattern.pattern);
-		} else if (pattern instanceof Element) {
-			missingElements.push(pattern);
-		} else if (pattern instanceof MissingElement) {
-			missingElements = missingElements.concat(pattern.missingElements);
-		}
-	}
+	
 }

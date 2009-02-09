@@ -108,11 +108,6 @@ function RelaxNGValidator(result, sax_events, relaxng, debug) {
 	this.rngUri = "http://relaxng.org/ns/structure/1.0";
 	this.aUri = "http://relaxng.org/ns/compatibility/annotations/1.0";
 	
-	this.fireRelaxngError = function(message) {
-		this.relaxngError(this.saxParser.char, this.saxParser.index, message);
-		this.saxParser.state = this.saxParser.STATE_EXTERNAL_ERROR_FIRED;
-	};
-	
 	this.setSaxParser = function(saxParser) {
 		this.saxParser = saxParser;
 	};
@@ -143,20 +138,8 @@ function RelaxNGValidator(result, sax_events, relaxng, debug) {
 		this.displayAtts(atts);
 		
 		var attributeNodes = new Array();
-		for (var att in atts) {
-			var att_namespaceURI = "";
-			var att_localName = att;
-			if (att.match(":")) {
-				var splits = att.split(":");
-				var prefix = splits[0];
-				att_localName = splits[1];
-				for (var i in this.instanceContext.map) {
-					if (prefix == i) {
-						att_namespaceURI = this.instanceContext.map[prefix];
-					}
-				}
-		    }
-			attributeNodes.push(new AttributeNode(new QName(att_namespaceURI, att_localName), atts[att]));
+		for (var i = 0 ; i < atts.getLength() ; i++) {
+			attributeNodes.push(new AttributeNode(new QName(atts.getURI(i), atts.getLocalName(i)), atts.getValue(i)));
 		}
 		var newElement = new ElementNode(new QName(namespaceURI, localName), this.instanceContext, attributeNodes, new Array());
 		//this.childNode must be an ElementNode
@@ -390,21 +373,30 @@ function RelaxNGValidator(result, sax_events, relaxng, debug) {
 		this.sax_events.innerHTML += "setDocumentLocator [" + locator + "]<br/>";
 	};
 
-	this.displayAtts = function(atts) {
-		for (i in atts) {
-			this.sax_events.innerHTML += "[" + i + "] [" + atts[i] + "]<br/>";
-		}
-	};
+    this.displayAtts = function(atts) {
+        for (var i = 0 ; i < atts.getLength() ; i++) {
+            div.innerHTML += "attribute [" + atts.getURI(i) + "] [" + atts.getLocalName(i) + "] [" + atts.getValue(i) + "]<br/>";
+        }
+    };
 	
 	this.debugMsg = function(message) {
 		this.sax_events.innerHTML += "debug : " + message + "<br/>";
 	};
-	
-	this.error = function(char, index, message) {
-		this.result.innerHTML += "invalid char : [" + char + "] at index : " + index + "<br/>";
-		this.result.innerHTML += "message is : [" + message + "]<br/>";
-	};
 
+    this.warning = function(saxException) {
+        this.serializeSaxException(saxException);
+    };
+    this.error = function(saxException) {
+        this.serializeSaxException(saxException);
+    };
+    this.fatalError = function(saxException) {
+        this.serializeSaxException(saxException);
+    };
+    
+    this.fireRelaxngError = function(message) {
+		this.relaxngError(this.saxParser.char, this.saxParser.index, message);
+	};
+    
 	this.relaxngError = function(char, index, message) {
 		this.result.innerHTML += "validation error at char : [" + char + "] at index : " + index + "<br/>";
 		this.result.innerHTML += "message is : [" + message + "]<br/>";
