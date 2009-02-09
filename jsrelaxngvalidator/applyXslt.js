@@ -1,11 +1,10 @@
 /*
-Copyright or © or Copr. INRIA contributor(s) : Nicolas Debeissat
+Copyright or © or Copr. Nicolas Debeissat
 
-debeissat.nicolas@gmail.com
+nicolas.debeissat@gmail.com (http://debeissat.nicolas.free.fr/)
 
-This software is a computer program whose purpose is to generically
-generate web forms from a XML specification and, with that form,
-being able to generate the XML respecting that specification.
+This software is a computer program whose purpose is to validate XML
+against a RelaxNG schema.
 
 This software is governed by the CeCILL license under French law and
 abiding by the rules of distribution of free software.  You can  use, 
