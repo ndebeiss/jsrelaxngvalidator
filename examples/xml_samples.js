@@ -368,7 +368,7 @@ return "<?xml version=\"1.0\"?> \
 		<bch:benchmark xmlns:bch=\"http://benchmark\"> \
 			<bch:recording celltypes=\"Y-OFF X-ON X-OFF\"> \
 			</bch:recording> \
-			<bch:protocols/> \
+			<bch:protocols>aText</bch:protocols> \
 		</bch:benchmark>";
 
 }

@@ -207,7 +207,7 @@ function ValidatorFunctions(relaxNGValidator, datatypeLibrary) {
 				return new NotAllowed("data invalid, found [" + string + "]", pattern, childNode);
 			}
 		} else if (pattern instanceof List) {
-			var listDeriv = this.listDeriv(context, pattern.pattern, this.words(string));
+			var listDeriv = this.listDeriv(context, pattern.pattern, this.words(string), childNode);
 			if (this.nullable(listDeriv, childNode)) {
 				return new Empty();
 			} else {
@@ -323,14 +323,14 @@ function ValidatorFunctions(relaxNGValidator, datatypeLibrary) {
 	this.datatypeAllows = function(datatype, paramList, string, context) {
 		if (datatype.uri == "") {
 			if (datatype.localName == "string" && paramList.length == 0) {
-				return true;
+				return new Empty();
 			} else if (datatype.localName == "token" && paramList.length == 0) {
-				return true;
+				return new Empty();
 			} else {
-				return false;
+				return new NotAllowed("datatype uri is not specified", datatype, string);
 			}
 		} else if (!datatypeLibrary) {
-			return true;
+			return new Empty();
 		} else {
 			return datatypeLibrary.datatypeAllows(datatype, paramList, string, context);
 		}
@@ -344,12 +344,20 @@ function ValidatorFunctions(relaxNGValidator, datatypeLibrary) {
 	this.datatypeEqual = function(datatype, string1, context1, string2, context2) {
 		if (datatype.uri == "") {
 			if (datatype.localName == "string") {
-				return string1 == string2;
+                if (string1 == string2) {
+                    return new Empty();
+                } else {
+                    return new NotAllowed("strings are not equals", datatype, string2);
+                }
 			} else if (datatype.localName == "token") {
-				return this.normalizeWhitespace(string1) == this.normalizeWhitespace(string2);
+				if (this.normalizeWhitespace(string1) == this.normalizeWhitespace(string2)) {
+                    return new Empty();
+                } else {
+                    return new NotAllowed("strings are not equals", datatype, string2);
+                }
 			}
 		} else if (!datatypeLibrary) {
-			return true;
+			return new Empty();
 		} else {
 			return datatypeLibrary.datatypeEqual(datatype, string1, context1, string2, context2);
 		}

@@ -6,6 +6,7 @@
 		<script type="text/javascript" src="../jsrelaxngvalidator/sax.js"></script>
 		<script type="text/javascript" src="../jsrelaxngvalidator/dom_utils.js"></script>
 		<script type="text/javascript" src="../jsrelaxngvalidator/applyXslt.js"></script>
+        <script type="text/javascript" src="../jsrelaxngvalidator/datatype_library.js"></script>
 		<script type="text/javascript" src="../jsrelaxngvalidator/relaxng_validator.js"></script>
 		<script type="text/javascript" src="../jsrelaxngvalidator/validator_functions.js"></script>
 		<script type="text/javascript" src="../jsrelaxngvalidator/validator_objects.js"></script>
@@ -22,9 +23,12 @@
 		var idChildNode = 'childNode_step';
 		var idPattern = 'pattern_step';
 		
-		function start() {
-			div = document.getElementById("msg");
-			var relaxNGValidator = new RelaxNGValidator(div,relaxng,true);
+        function validateXml(result, sax_events) {
+			var result = document.getElementById(result);
+			var sax_events = document.getElementById(sax_events);
+			sax_events.innerHTML = "";
+			
+			var relaxNGValidator = new RelaxNGValidator(result, sax_events, relaxng);
 			var saxParser = new SAXParser(relaxNGValidator);
 			relaxNGValidator.setSaxParser(saxParser);
 			saxParser.parse(xml);
@@ -70,6 +74,14 @@
 			}
 		}
 		
+		function showDebug(checkbox) {
+			if (checkbox.checked == true) {
+				document.getElementById('debug').style.display = '';
+			} else {
+				document.getElementById('debug').style.display = 'none';
+			}
+		}
+		
 		</script>
 		
 		<style type="text/css">
@@ -82,16 +94,21 @@
 	</head>
 	
 	<body>
-		<div id="msg"></div>
-		<input type="button" onclick="start()"/>
-		
-		<input type="button" value="<" onclick="seePreviousStep()"/>
-		<input type="button" value=">" onclick="seeNextStep()"/>
-		<div id="steps">
-			<h4><span class="grey">validation </span><span class="yellow">pattern</span></h4>
-			<div id="pattern"></div>
-			<h4><span class="grey">child node </span><span class="yellow">being validated</span></h4>
-			<div id="childNode"></div>
-		</div>
+        <input class="execute" type="button" value="Validate XML" onclick="validateXml('validation_result', 'sax_events')" />
+        <div id="validation_result"/>
+        <input type="checkbox" onclick="showDebug(this)"/>Show debug messages.
+        <div id="debug" style="display: none">
+            <h4><span class="grey">SAX </span><span class="yellow">events</span></h4>
+            <div id="sax_events"></div>
+            <h4><span class="grey">steps of </span><span class="yellow">validation</span></h4>
+            <input type="button" value="see previous step" onclick="seePreviousStep()"/>
+            <input type="button" value="see next step" onclick="seeNextStep()"/>
+            <div id="steps">
+                <h4><span class="grey">validation </span><span class="yellow">pattern</span></h4>
+                <div id="pattern"></div>
+                <h4><span class="grey">child node </span><span class="yellow">being validated</span></h4>
+                <div id="childNode"></div>
+            </div>
+        </div>
 	</body>
 </html>

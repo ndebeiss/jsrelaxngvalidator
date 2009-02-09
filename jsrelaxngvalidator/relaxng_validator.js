@@ -93,7 +93,7 @@ function RelaxNGValidator(result, sax_events, relaxng, debug) {
 	//keeps a reference on saxParser in order to fire an error and stops parsing
 	this.saxParser;
 	//reference to its validator_functions
-	this.validatorFunctions = new ValidatorFunctions(this);
+	this.validatorFunctions = new ValidatorFunctions(this, new DatatypeLibrary());
 	
 	this.context;
 	this.instanceContext;
@@ -362,8 +362,7 @@ function RelaxNGValidator(result, sax_events, relaxng, debug) {
 		}
 		if (childPattern instanceof NotAllowed) {
 			this.fireRelaxngError("document not valid : " + childPattern.toString() + "<br/>");
-		} else if (childPattern instanceof MissingElement) {
-			this.fireRelaxngError("missing " + childPattern.missingElements.length + " elements in document : " + childPattern.toString() + "<br/>");
+            throw new SAXException(this.saxParser.char, this.saxParser.index, "document not valid");
 		} else {
 			this.result.innerHTML += "<h4>That XML is valid</h4>";
 		}
@@ -375,7 +374,7 @@ function RelaxNGValidator(result, sax_events, relaxng, debug) {
 
     this.displayAtts = function(atts) {
         for (var i = 0 ; i < atts.getLength() ; i++) {
-            div.innerHTML += "attribute [" + atts.getURI(i) + "] [" + atts.getLocalName(i) + "] [" + atts.getValue(i) + "]<br/>";
+            this.sax_events.innerHTML += "attribute [" + atts.getURI(i) + "] [" + atts.getLocalName(i) + "] [" + atts.getValue(i) + "]<br/>";
         }
     };
 	
@@ -384,13 +383,13 @@ function RelaxNGValidator(result, sax_events, relaxng, debug) {
 	};
 
     this.warning = function(saxException) {
-        this.serializeSaxException(saxException);
+        this.relaxngError(saxException.char, saxException.index, saxException.message);
     };
     this.error = function(saxException) {
-        this.serializeSaxException(saxException);
+        this.relaxngError(saxException.char, saxException.index, saxException.message);
     };
     this.fatalError = function(saxException) {
-        this.serializeSaxException(saxException);
+        this.relaxngError(saxException.char, saxException.index, saxException.message);
     };
     
     this.fireRelaxngError = function(message) {

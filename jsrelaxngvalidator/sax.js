@@ -309,7 +309,7 @@ function SAXParser(contentHandler) {
             prefix = splitResult[0];
             localName = splitResult[1];
         }
-        return new qName(prefix, localName);
+        return new sax_QName(prefix, localName);
     };
     
     this.scanElement = function(qName) {
@@ -346,7 +346,7 @@ function SAXParser(contentHandler) {
     this.scanAttributes = function(namespacesDeclared) {
         var atts = new Array();
         this.scanAttribute(atts, namespacesDeclared);
-        return new Attributes(atts);
+        return new sax_Attributes(atts);
     };
     
     this.scanAttribute = function(atts, namespacesDeclared) {
@@ -366,7 +366,7 @@ function SAXParser(contentHandler) {
                 } else {
                     var namespaceURI = this.getNamespaceURI(attQName.prefix);
                     var value = this.scanAttValue();
-                    var att = new Attribute(attQName, namespaceURI, value);
+                    var att = new sax_Attribute(attQName, namespaceURI, value);
                     atts.push(att);
                 }
                 this.scanAttribute(atts, namespacesDeclared);
@@ -563,7 +563,7 @@ function SAXParser(contentHandler) {
     
 }
 
-function qName(prefix, localName) {
+function sax_QName(prefix, localName) {
     this.prefix = prefix;
     this.localName = localName;
     if (prefix != '') {
@@ -604,7 +604,7 @@ function qName(prefix, localName) {
  java.lang.String 	getValue(java.lang.String uri, java.lang.String localName)
           Look up an attribute's value by Namespace name.
  */
-function Attributes(attsArray) {
+function sax_Attributes(attsArray) {
     this.attsArray = attsArray;
     
     this.getIndex = function(arg1, arg2) {
@@ -677,7 +677,7 @@ function Attributes(attsArray) {
     
 }
 
-function Attribute(qName, namespaceURI, value) {
+function sax_Attribute(qName, namespaceURI, value) {
     this.qName = qName;
     this.namespaceURI = namespaceURI;
     this.value = value;
