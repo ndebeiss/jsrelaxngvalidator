@@ -115,9 +115,9 @@ function DatatypeLibrary() {
 
 	var languageRegExp = new RegExp("^[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$");
 	//http://www.w3.org/TR/xml/#NT-Name
-	var nameStartChar = "A-Z_a-z\\uC0-\\uD6\\uD8-\\uF6\\uF8-\\u2FF\\u370-\\u37D\\u37F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD";
+	var nameStartChar = "A-Z_a-z\\hC0-\\hD6\\hD8-\\hF6\\hF8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD";
     //\\u10000-\\uEFFFF
-	var nameChar = nameStartChar + "\-\.0-9\\uB7\\u0300-\\u036F\\u203F-\\u2040";
+	var nameChar = nameStartChar + "\-\.0-9\\hB7\\u0300-\\u036F\\u203F-\\u2040";
 	var nameRegExp = new RegExp("^[:" + nameStartChar + "][:" + nameChar + "]*$");
 	var ncNameRegExp = new RegExp("^[" + nameStartChar + "][" + nameChar + "]*$");
 

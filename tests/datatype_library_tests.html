@@ -49,7 +49,7 @@
         datatypeAllows_true("QName", "string");
 	}
     function testDatatypeAllows_QName_false() {
-        datatypeAllows_false("QName", " str ing ");
+        datatypeAllows_false("QName", "str	ing ");
 	}
     
     function datatypeAllows_true(localname, string) {
