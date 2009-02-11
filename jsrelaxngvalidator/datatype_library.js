@@ -126,7 +126,9 @@ function DatatypeLibrary() {
 	
 	var qNameRegExp = new RegExp("^[" + nameStartChar + "][" + nameChar + "]*(:[" + nameStartChar + "]+)?$");
 	
-	var tokenRegExp = new RegExp("^[^" + whitespaceChar + "(  +)]$");
+	var tokenRegExp = new RegExp("^[^" + whitespaceChar + "][^" + whitespaceChar + "(  +)][^" + whitespaceChar + "(  +)]$");
+	
+	var multipleSpaces = new RegExp(" {2,}");
 	
 	/*
 	datatypeAllows :: Datatype -> ParamList -> String -> Context -> Bool
@@ -167,6 +169,12 @@ function DatatypeLibrary() {
 				}
 			} else if (datatype.localName == "string") {
 				return new Empty();
+			} else if (datatype.localName == "token") {
+				if (this.checkRegExp(tokenRegExp, string) && !this.checkRegExp(multipleSpaces, string)) {
+					return new Empty();
+				} else {
+					return new NotAllowed("invalid " + datatype.localName, datatype, string);
+				}
 			}
 		} else {
 			return new Empty();
