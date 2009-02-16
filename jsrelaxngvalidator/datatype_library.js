@@ -86,7 +86,7 @@ unsignedByte 	An unsigned 8-bit integer										OK
 
 extract from http://www.w3schools.com/Schema/schema_dtypes_misc.asp :
 
-anyURI  	 
+anyURI  	 															does not do any validation
 base64Binary 	 
 boolean 	 
 double 	 
@@ -214,7 +214,7 @@ function DatatypeLibrary() {
 			} else if (datatype.localName == "string") {
 				return new Empty();
 			} else if (datatype.localName == "token") {
-				var result = this.checkNegRegExp(multipleSpaces, string, datatype);
+				var result = this.checkExclusiveRegExp(multipleSpaces, string, datatype);
 				if (result instanceof NotAllowed) {
 					return result;
 				}
@@ -265,6 +265,8 @@ function DatatypeLibrary() {
 				return this.checkIntegerRange(0, UNSIGNED_SHORT_MAX, string, datatype);
 			} else if (datatype.localName == "unsignedByte") {
 				return this.checkIntegerRange(0, UNSIGNED_BYTE_MAX, string, datatype);
+			} else if (datatype.localName == "anyURI") {
+				return new Empty();
 			} else {
 				return new Empty();
 			}
@@ -300,7 +302,7 @@ function DatatypeLibrary() {
 		return new NotAllowed("invalid " + datatype.localName, datatype, string);
 	}
 	
-	this.checkNegRegExp = function(regExp, string, datatype) {
+	this.checkExclusiveRegExp = function(regExp, string, datatype) {
 		if (regExp.test(string)) {
 			return new NotAllowed("invalid " + datatype.localName, datatype, string);
 		}
