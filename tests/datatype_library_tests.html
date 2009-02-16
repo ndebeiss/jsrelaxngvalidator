@@ -3,6 +3,7 @@
     <script language="JavaScript" src="../jsunit/app/jsUnitCore.js"></script>
 	<script language="JavaScript" src="../jsrelaxngvalidator/datatype_library.js"></script>
 	<script language="JavaScript" src="../jsrelaxngvalidator/validator_objects.js"></script>
+	<script language="JavaScript" src="../jsrelaxngvalidator/dom_utils.js"></script>
     <script language="JavaScript">
 	var datatypeLibrary = new DatatypeLibrary();
 
@@ -65,6 +66,10 @@
 		var resultPattern = datatypeLibrary.datatypeAllows(datatype, paramList, string, context);
 		assertTrue(resultPattern instanceof NotAllowed);
     }
+	
+	function testDatatypeAllows_from_jing-trang() {
+		var xml_tests = createDocumentFromText(loadFile("from_jing-trang/xsdtest.xml"));
+	}
     
     
 
