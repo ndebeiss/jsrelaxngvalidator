@@ -58,31 +58,31 @@ token 	A string that does not contain line feeds, carriage returns, tabs, leadin
 extract from http://www.w3schools.com/Schema/schema_dtypes_date.asp :
 
 date  	Defines a date value													OK
-dateTime 	Defines a date and time value
-duration 	Defines a time interval
-gDay 	Defines a part of a date - the day (DD)
-gMonth 	Defines a part of a date - the month (MM)
-gMonthDay 	Defines a part of a date - the month and day (MM-DD)
-gYear 	Defines a part of a date - the year (YYYY)
-gYearMonth 	Defines a part of a date - the year and month (YYYY-MM)
-time 	Defines a time value
+dateTime 	Defines a date and time value											OK
+duration 	Defines a time interval												OK
+gDay 	Defines a part of a date - the day (DD)										OK
+gMonth 	Defines a part of a date - the month (MM)									OK
+gMonthDay 	Defines a part of a date - the month and day (MM-DD)							OK
+gYear 	Defines a part of a date - the year (YYYY)									OK
+gYearMonth 	Defines a part of a date - the year and month (YYYY-MM)					OK
+time 	Defines a time value													OK
 
 extract from http://www.w3schools.com/Schema/schema_dtypes_numeric.asp :
 
-byte  	A signed 8-bit integer
-decimal 	A decimal value
-int 	A signed 32-bit integer
-integer 	An integer value
-long 	A signed 64-bit integer
-negativeInteger 	An integer containing only negative values ( .., -2, -1.)
-nonNegativeInteger 	An integer containing only non-negative values (0, 1, 2, ..)
-nonPositiveInteger 	An integer containing only non-positive values (.., -2, -1, 0)
-positiveInteger 	An integer containing only positive values (1, 2, ..)
-short 	A signed 16-bit integer
-unsignedLong 	An unsigned 64-bit integer
-unsignedInt 	An unsigned 32-bit integer
-unsignedShort 	An unsigned 16-bit integer
-unsignedByte 	An unsigned 8-bit integer
+byte  	A signed 8-bit integer													OK
+decimal 	A decimal value													OK
+int 	A signed 32-bit integer													OK
+integer 	An integer value													OK
+long 	A signed 64-bit integer													OK
+negativeInteger 	An integer containing only negative values ( .., -2, -1.)						OK
+nonNegativeInteger 	An integer containing only non-negative values (0, 1, 2, ..)				OK
+nonPositiveInteger 	An integer containing only non-positive values (.., -2, -1, 0)				OK
+positiveInteger 	An integer containing only positive values (1, 2, ..)						OK
+short 	A signed 16-bit integer													OK
+unsignedLong 	An unsigned 64-bit integer										OK
+unsignedInt 	An unsigned 32-bit integer										OK
+unsignedShort 	An unsigned 16-bit integer										OK
+unsignedByte 	An unsigned 8-bit integer										OK
 
 extract from http://www.w3schools.com/Schema/schema_dtypes_misc.asp :
 
@@ -126,9 +126,73 @@ function DatatypeLibrary() {
 	
 	var qNameRegExp = new RegExp("^[" + nameStartChar + "][" + nameChar + "]*(:[" + nameStartChar + "]+)?$");
 	
-	var multipleSpaces = new RegExp(" {2,}");
+	var multipleSpaces = new RegExp("^[^ {2,}]$");
 	
 	var tokenRegExp = new RegExp("^[^" + whitespaceChar + " ].*[^" + whitespaceChar + " ]$");
+	
+	var year = "-?([1-9][0-9]*)?[0-9]{4}";
+    var month = "[0-9]{2}";
+	var dayOfMonth = "[0-9]{2}";
+	var time = "[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]*)?";
+	var timeZone = "(Z|[+\\-][0-9][0-9]:[0-5][0-9])?";
+	
+	var dateRegExp = new RegExp("^" + year + "-" + month + "-" + dayOfMonth + timeZone + "$");
+	
+	var dateTimeRegExp = new RegExp("^" + year + "-" + month + "-" + dayOfMonth + "T" + time + timeZone + "$");
+	
+	var duration = "-?P([0-9]+Y)?([0-9]+M)?([0-9]+D)?(T([0-9]+H)?([0-9]+M)?(([0-9]+(\\.[0-9]*)?|\\.[0-9]+)S)?)?";
+	
+	var durationRegExp = new RegExp("^" + duration + "$");
+	
+	var gDayRexExp = new RegExp("^" + dayOfMonth + timeZone + "$");
+	
+	var gMonthRexExp = new RegExp("^" + month + timeZone + "$");
+	
+	var gMonthDayRexExp = new RegExp("^--" + month + "-" + dayOfMonth + timeZone + "$");
+	
+	var gYearRegExp = new RegExp("^" + year + timeZone + "$");
+	
+	var gYearMonthRegExp = new RegExp("^" + year + "-" + month + timeZone + "$");
+	
+	var timeRegExp = new RegExp("^" + time + timeZone + "$");
+	
+	var LONG_MAX = 9223372036854775807;
+	var LONG_MIN = -9223372036854775808;
+	var INT_MAX = 2147483647;
+	var INT_MIN = -2147483648;
+	var SHORT_MAX = 32767;
+	var SHORT_MIN = -32768;
+	var BYTE_MAX = 127;
+	var BYTE_MIN = -128;
+
+	var UNSIGNED_LONG_MAX = 18446744073709551615;
+	var UNSIGNED_INT_MAX = 4294967295;
+	var UNSIGNED_SHORT_MAX = 65535;
+	var UNSIGNED_BYTE_MAX = 255;
+	
+	var integer = "[\-+]?[0-9]+";
+	
+	var integerRexExp = new RegExp("^" + integer + "$");
+	
+	var decimal = "([\-+])?[0-9]+(.[0-9]+)?";
+	
+	var decimalRexExp = new RegExp("^" + decimal + "$");
+	
+	var negativeInteger = "\-[1-9][0-9]*";
+	
+	var negativeIntegerRexExp = new RegExp("^" + negativeInteger + "$");
+	
+	var nonNegativeInteger = "\+?[0-9]+";
+	
+	var nonNegativeIntegerRexExp = new RegExp("^" + nonNegativeInteger + "$");
+	
+	var nonPositiveInteger = "\-?[0-9]+";
+	
+	var nonPositiveIntegerRexExp = new RegExp("^" + nonPositiveInteger + "$");
+	
+	var positiveInteger = "\+?[1-9][0-9]*";
+	
+	var positiveIntegerRexExp = new RegExp("^" + positiveInteger + "$");
 	
 	/*
 	datatypeAllows :: Datatype -> ParamList -> String -> Context -> Bool
@@ -138,43 +202,69 @@ function DatatypeLibrary() {
 	this.datatypeAllows = function(datatype, paramList, string, context) {
 		if (datatype.uri == "http://www.w3.org/2001/XMLSchema-datatypes") {
 			if (datatype.localName == "language") {
-				if (this.checkRegExp(languageRegExp, string)) {
-					return new Empty();
-				} else {
-					return new NotAllowed("invalid " + datatype.localName, datatype, string);
-				}
+				return this.checkRegExp(languageRegExp, string, datatype);
 			} else if (datatype.localName == "Name") {
-				if (this.checkRegExp(nameRegExp, string)) {
-					return new Empty();
-				} else {
-					return new NotAllowed("invalid " + datatype.localName, datatype, string);
-				}
+				return this.checkRegExp(nameRegExp, string, datatype);
 			} else if (datatype.localName == "NCName") {
-				if (this.checkRegExp(ncNameRegExp, string)) {
-					return new Empty();
-				} else {
-					return new NotAllowed("invalid " + datatype.localName, datatype, string);
-				}
+				return this.checkRegExp(ncNameRegExp, string, datatype);
 			} else if (datatype.localName == "normalizedString") {
-				if (this.checkRegExp(normalizedStringRegExp, string)) {
-					return new Empty();
-				} else {
-					return new NotAllowed("invalid " + datatype.localName, datatype, string);
-				}
+				return this.checkRegExp(normalizedStringRegExp, string, datatype);
 			} else if (datatype.localName == "QName") {
-				if (this.checkRegExp(qNameRegExp, string)) {
-					return new Empty();
-				} else {
-					return new NotAllowed("invalid " + datatype.localName, datatype, string);
-				}
+				return this.checkRegExp(qNameRegExp, string, datatype);
 			} else if (datatype.localName == "string") {
 				return new Empty();
 			} else if (datatype.localName == "token") {
-				if (this.checkRegExp(tokenRegExp, string) && !this.checkRegExp(multipleSpaces, string)) {
-					return new Empty();
-				} else {
-					return new NotAllowed("invalid " + datatype.localName, datatype, string);
+				var result = this.checkNegRegExp(multipleSpaces, string, datatype);
+				if (result instanceof NotAllowed) {
+					return result;
 				}
+				return this.checkRegExp(tokenRegExp, string, datatype) {
+			} else if (datatype.localName == "date") {
+				return this.checkRegExp(dateRegExp, string, datatype);
+			} else if (datatype.localName == "dateTime") {
+				return this.checkRegExp(dateTimeRegExp, string, datatype);
+			} else if (datatype.localName == "duration") {
+				return this.checkRegExp(durationRegExp, string, datatype);
+			} else if (datatype.localName == "gDay") {
+				return this.checkRegExp(gDayRegExp, string, datatype);
+			} else if (datatype.localName == "gMonth") {
+				return this.checkRegExp(gMonthRegExp, string, datatype);
+			} else if (datatype.localName == "gMonthDay") {
+				return this.checkRegExp(gMonthDayRegExp, string, datatype);
+			} else if (datatype.localName == "gYear") {
+				return this.checkRegExp(gYearRegExp, string, datatype);
+			} else if (datatype.localName == "gYearMonth") {
+				return this.checkRegExp(gYearMonthRegExp, string, datatype);
+			} else if (datatype.localName == "time") {
+				return this.checkRegExp(timeRegExp, string, datatype);
+			} else if (datatype.localName == "byte") {
+				return this.checkIntegerRange(BYTE_MIN, BYTE_MAX, string, datatype);
+			} else if (datatype.localName == "decimal") {
+				return this.checkRegExp(decimalRexExp, string, datatype);
+			} else if (datatype.localName == "int") {
+				return this.checkIntegerRange(INT_MIN, INT_MAX, string, datatype);
+			} else if (datatype.localName == "integer") {
+				return this.checkRegExp(integerRexExp, string, datatype);
+			} else if (datatype.localName == "long") {
+				return this.checkIntegerRange(LONG_MIN, LONG_MAX, string, datatype);
+			} else if (datatype.localName == "negativeInteger") {
+				return this.checkRegExp(negativeIntegerRexExp, string, datatype);
+			} else if (datatype.localName == "nonNegativeInteger") {
+				return this.checkRegExp(nonNegativeIntegerRexExp, string, datatype);
+			} else if (datatype.localName == "nonPositiveInteger") {
+				return this.checkRegExp(nonPositiveIntegerRexExp, string, datatype);
+			} else if (datatype.localName == "positiveInteger") {
+				return this.checkRegExp(positiveIntegerRexExp, string, datatype);
+			} else if (datatype.localName == "short") {
+				return this.checkIntegerRange(SHORT_MIN, SHORT_MAX, string, datatype);
+			} else if (datatype.localName == "unsignedLong") {
+				return this.checkIntegerRange(0, UNSIGNED_LONG_MAX, string, datatype);
+			} else if (datatype.localName == "unsignedInt") {
+				return this.checkIntegerRange(0, UNSIGNED_INT_MAX, string, datatype);
+			} else if (datatype.localName == "unsignedShort") {
+				return this.checkIntegerRange(0, UNSIGNED_SHORT_MAX, string, datatype);
+			} else if (datatype.localName == "unsignedByte") {
+				return this.checkIntegerRange(0, UNSIGNED_BYTE_MAX, string, datatype);
 			} else {
 				return new Empty();
 			}
@@ -203,8 +293,30 @@ function DatatypeLibrary() {
 	}
 
 
-	this.checkRegExp = function(regExp, string) {
-		return regExp.test(string);
+	this.checkRegExp = function(regExp, string, datatype) {
+		if (this.checkRegExp(regExp, string)) {
+			return new Empty();
+		}
+		return new NotAllowed("invalid " + datatype.localName, datatype, string);
+	}
+	
+	this.checkNegRegExp = function(regExp, string, datatype) {
+		if (regExp.test(string)) {
+			return new NotAllowed("invalid " + datatype.localName, datatype, string);
+		}
+		return new Empty();
+	}
+	
+	this.checkIntegerRange = function(min, max, string, datatype) {
+		if (regExp.test(integerRexExp, string, datatype)) {
+			return new NotAllowed("invalid " + datatype.localName, datatype, string);
+		} else {
+			var integer = parseInt(string);
+			if (integer >= min && integer <= max) {
+				return new Empty();
+			}
+			return new NotAllowed("invalid integer range, min is " + min + ", max is " + max " for datatype " + datatype.localName, datatype, string);
+		}
 	}
 
 
