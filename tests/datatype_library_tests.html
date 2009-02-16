@@ -4,6 +4,8 @@
 	<script language="JavaScript" src="../jsrelaxngvalidator/datatype_library.js"></script>
 	<script language="JavaScript" src="../jsrelaxngvalidator/validator_objects.js"></script>
 	<script language="JavaScript" src="../jsrelaxngvalidator/dom_utils.js"></script>
+    <script language="JavaScript" src="../jsrelaxngvalidator/applyXslt.js"></script>
+    <script language="JavaScript" src="manageWhiteSpace.js"></script>
     <script language="JavaScript">
 	var datatypeLibrary = new DatatypeLibrary();
 
@@ -29,7 +31,7 @@
         datatypeAllows_true("Name", "markup_name");
 	}
     function testDatatypeAllows_Name_false() {
-        datatypeAllows_false("Name", "sfe:markup_name");
+        datatypeAllows_false("Name", "ma$rkup_name:");
 	}
     
     function testDatatypeAllows_NCName() {
@@ -42,9 +44,6 @@
     function testDatatypeAllows_normalizedString() {
         datatypeAllows_true("normalizedString", "string");
 	}
-    function testDatatypeAllows_normalizedString_false() {
-        datatypeAllows_false("normalizedString", " str ing ");
-	}
     
     function testDatatypeAllows_QName() {
         datatypeAllows_true("QName", "string");
@@ -56,19 +55,36 @@
     function datatypeAllows_true(localname, string) {
         var datatype = new Datatype(uri, localname);
         debug("testDatatypeAllows localname [" + localname + "] string [" + string + "]");
+        inform("testing localname [" + localname + "] with string [" + string + "]");
 		var resultPattern = datatypeLibrary.datatypeAllows(datatype, paramList, string, context);
-		assertTrue(resultPattern instanceof Empty);
+		assertTrue("localname [" + localname + "] string [" + string + "]", resultPattern instanceof Empty);
     }
     
     function datatypeAllows_false(localname, string) {
         var datatype = new Datatype(uri, localname);
         debug("testDatatypeAllows localname [" + localname + "] string [" + string + "]");
+        inform("testing localname [" + localname + "] with string [" + string + "]");
 		var resultPattern = datatypeLibrary.datatypeAllows(datatype, paramList, string, context);
-		assertTrue(resultPattern instanceof NotAllowed);
+		assertTrue("localname [" + localname + "] string [" + string + "]", resultPattern instanceof NotAllowed);
     }
 	
-	function testDatatypeAllows_from_jing-trang() {
+	function testDatatypeAllows_from_jing_trang() {
 		var xml_tests = createDocumentFromText(loadFile("from_jing-trang/xsdtest.xml"));
+        var datatypeNodes = xml_tests.getElementsByTagName("datatype");
+        for (var i = 0 ; i < datatypeNodes.length ; i++) {
+            var datatypeNode = datatypeNodes.item(i);
+            var name = datatypeNode.getAttribute("name");
+            var validNodes = datatypeNode.getElementsByTagName("valid");
+            for (var j = 0 ; j < validNodes.length ; j++) {
+                var value = data_of(validNodes.item(j).childNodes.item(0));
+                datatypeAllows_true(name, value);
+            }
+            var inValidNodes = datatypeNode.getElementsByTagName("invalid");
+            for (var j = 0 ; j < inValidNodes.length ; j++) {
+                var value = data_of(inValidNodes.item(j).childNodes.item(0));
+                datatypeAllows_false(name, value);
+            }
+        }
 	}
     
     

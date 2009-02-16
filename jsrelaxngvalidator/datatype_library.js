@@ -126,9 +126,7 @@ function DatatypeLibrary() {
 	
 	var qNameRegExp = new RegExp("^[" + nameStartChar + "][" + nameChar + "]*(:[" + nameStartChar + "]+)?$");
 	
-	var multipleSpaces = new RegExp("^[^ {2,}]$");
-	
-	var tokenRegExp = new RegExp("^[^" + whitespaceChar + " ].*[^" + whitespaceChar + " ]$");
+	var tokenRegExp = new RegExp("^[^" + whitespaceChar + " ](?!.*  )[^" + whitespaceChar + " ]$");
 	
 	var year = "-?([1-9][0-9]*)?[0-9]{4}";
     var month = "[0-9]{2}";
@@ -139,10 +137,8 @@ function DatatypeLibrary() {
 	var dateRegExp = new RegExp("^" + year + "-" + month + "-" + dayOfMonth + timeZone + "$");
 	
 	var dateTimeRegExp = new RegExp("^" + year + "-" + month + "-" + dayOfMonth + "T" + time + timeZone + "$");
-	
-	var duration = "-?P([0-9]+Y)?([0-9]+M)?([0-9]+D)?(T([0-9]+H)?([0-9]+M)?(([0-9]+(\\.[0-9]*)?|\\.[0-9]+)S)?)?";
-	
-	var durationRegExp = new RegExp("^" + duration + "$");
+    
+	var durationRegExp = new RegExp("^-?P([0-9]+Y)?([0-9]+M)?([0-9]+D)?(T([0-9]+H)?([0-9]+M)?(([0-9]+(\\.[0-9]*)?|\\.[0-9]+)S)?)?$");
 	
 	var gDayRexExp = new RegExp("^" + dayOfMonth + timeZone + "$");
 	
@@ -170,30 +166,18 @@ function DatatypeLibrary() {
 	var UNSIGNED_SHORT_MAX = 65535;
 	var UNSIGNED_BYTE_MAX = 255;
 	
-	var integer = "[\-+]?[0-9]+";
+	var integerRexExp = new RegExp("^[\-\+]?[0-9]+$");
 	
-	var integerRexExp = new RegExp("^" + integer + "$");
+	var decimalRexExp = new RegExp("^([\-\+])?[0-9]+(.[0-9]+)?$");
 	
-	var decimal = "([\-+])?[0-9]+(.[0-9]+)?";
+	var negativeIntegerRexExp = new RegExp("^\-[1-9][0-9]*$");
 	
-	var decimalRexExp = new RegExp("^" + decimal + "$");
+	var nonNegativeIntegerRexExp = new RegExp("^(\\+)?([0-9])+$");
+    
+	var nonPositiveIntegerRexExp = new RegExp("^\-?[0-9]+$");
 	
-	var negativeInteger = "\-[1-9][0-9]*";
-	
-	var negativeIntegerRexExp = new RegExp("^" + negativeInteger + "$");
-	
-	var nonNegativeInteger = "\+?[0-9]+";
-	
-	var nonNegativeIntegerRexExp = new RegExp("^" + nonNegativeInteger + "$");
-	
-	var nonPositiveInteger = "\-?[0-9]+";
-	
-	var nonPositiveIntegerRexExp = new RegExp("^" + nonPositiveInteger + "$");
-	
-	var positiveInteger = "\+?[1-9][0-9]*";
-	
-	var positiveIntegerRexExp = new RegExp("^" + positiveInteger + "$");
-	
+	var positiveIntegerRexExp = new RegExp("^\\+?[1-9][0-9]*$");
+    
 	/*
 	datatypeAllows :: Datatype -> ParamList -> String -> Context -> Bool
 	datatypeAllows ("",  "string") [] _ _ = True
@@ -214,11 +198,7 @@ function DatatypeLibrary() {
 			} else if (datatype.localName == "string") {
 				return new Empty();
 			} else if (datatype.localName == "token") {
-				var result = this.checkExclusiveRegExp(multipleSpaces, string, datatype);
-				if (result instanceof NotAllowed) {
-					return result;
-				}
-				return this.checkRegExp(tokenRegExp, string, datatype) {
+				return this.checkRegExp(tokenRegExp, string, datatype);
 			} else if (datatype.localName == "date") {
 				return this.checkRegExp(dateRegExp, string, datatype);
 			} else if (datatype.localName == "dateTime") {
@@ -296,7 +276,7 @@ function DatatypeLibrary() {
 
 
 	this.checkRegExp = function(regExp, string, datatype) {
-		if (this.checkRegExp(regExp, string)) {
+		if (regExp.test(string)) {
 			return new Empty();
 		}
 		return new NotAllowed("invalid " + datatype.localName, datatype, string);
@@ -317,7 +297,7 @@ function DatatypeLibrary() {
 			if (integer >= min && integer <= max) {
 				return new Empty();
 			}
-			return new NotAllowed("invalid integer range, min is " + min + ", max is " + max " for datatype " + datatype.localName, datatype, string);
+			return new NotAllowed("invalid integer range, min is " + min + ", max is " + max + " for datatype " + datatype.localName, datatype, string);
 		}
 	}
 
