@@ -80,7 +80,9 @@ function SAXParser(contentHandler) {
                 if (this.elementsStack.length > 0) {
                     this.fireError("the markup " + this.elementsStack.pop() + " has not been closed", this.FATAL);
                 } else {
-                    this.contentHandler.endDocument();
+                    try {
+                        this.contentHandler.endDocument();
+                    } catch(e) {}
                 }
             }
         }

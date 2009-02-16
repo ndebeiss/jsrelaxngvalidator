@@ -42,7 +42,9 @@ function ValidatorFunctions(relaxNGValidator, datatypeLibrary) {
 	this.datatypeLibrary = datatypeLibrary;
 
 	this.debug = function(message, pattern, childNode) {
-		recordStep(message, pattern, childNode);
+		if (this.relaxNGValidator.debug) {
+			recordStep(message, pattern, childNode);
+		}
 	}
 	
 	
@@ -329,10 +331,10 @@ function ValidatorFunctions(relaxNGValidator, datatypeLibrary) {
 			} else {
 				return new NotAllowed("datatype uri is not specified", datatype, string);
 			}
-		} else if (!datatypeLibrary) {
+		} else if (!this.datatypeLibrary) {
 			return new Empty();
 		} else {
-			return datatypeLibrary.datatypeAllows(datatype, paramList, string, context);
+			return this.datatypeLibrary.datatypeAllows(datatype, paramList, string, context);
 		}
 	}
 
@@ -356,10 +358,10 @@ function ValidatorFunctions(relaxNGValidator, datatypeLibrary) {
                     return new NotAllowed("strings are not equals", datatype, string2);
                 }
 			}
-		} else if (!datatypeLibrary) {
+		} else if (!this.datatypeLibrary) {
 			return new Empty();
 		} else {
-			return datatypeLibrary.datatypeEqual(datatype, string1, context1, string2, context2);
+			return this.datatypeLibrary.datatypeEqual(datatype, string1, context1, string2, context2);
 		}
 	}
 
@@ -523,7 +525,7 @@ function ValidatorFunctions(relaxNGValidator, datatypeLibrary) {
 			return this.group(attDer, this.choice(pattern.pattern, new Empty()));
 		} else if (pattern instanceof Attribute) {
 			var attributeNameCheck = this.contains(pattern.nameClass, attributeNode.qName);
-			if (attributeNameCheck && this.valueMatch(context, pattern.pattern, attributeNode.string)) {
+			if (attributeNameCheck && this.valueMatch(context, pattern.pattern, attributeNode.string, attributeNode)) {
 				return new Empty();
 			} else {
 				return new NotAllowed("invalid attribute", pattern, attributeNode);
@@ -539,13 +541,13 @@ function ValidatorFunctions(relaxNGValidator, datatypeLibrary) {
 	valueMatch :: Context -> Pattern -> String -> Bool
 	valueMatch cx p s = (nullable p && whitespace s) || nullable (textDeriv cx p s)
 	*/
-	this.valueMatch = function(context, pattern, string) {
+	this.valueMatch = function(context, pattern, string, childNode) {
 		var nullable = this.nullable(pattern);
 		var isWhitespace = this.whitespace(string);
 		if (nullable && isWhitespace) {
 			return true;
 		}
-		var textDerivResult = this.textDeriv(context, pattern, string);
+		var textDerivResult = this.textDeriv(context, pattern, string, childNode);
 		return this.nullable(textDerivResult);
 	}
 

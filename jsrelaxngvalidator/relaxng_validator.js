@@ -99,6 +99,7 @@ function RelaxNGValidator(result, sax_events, relaxng, debug) {
 	this.instanceContext;
 	
 	this.pattern;
+	this.resultPattern;
 	//root node of the xml being validated
 	this.childNode;
 	this.currentElementNode;
@@ -356,12 +357,12 @@ function RelaxNGValidator(result, sax_events, relaxng, debug) {
 		if (this.debug) {
 			this.debugMsg("validating childNode =<br/>" + this.childNode.toString());
 		}
-		var childPattern = this.validatorFunctions.childDeriv(this.context, this.pattern, this.childNode);
+		this.resultPattern = this.validatorFunctions.childDeriv(this.context, this.pattern, this.childNode);
 		if (this.debug) {
-			this.debugMsg("result pattern of that validation is =<br/>" + childPattern.toString());
+			this.debugMsg("result pattern of that validation is =<br/>" + this.resultPattern.toString());
 		}
-		if (childPattern instanceof NotAllowed) {
-			this.fireRelaxngError("document not valid : " + childPattern.toString() + "<br/>");
+		if (this.resultPattern instanceof NotAllowed) {
+			this.fireRelaxngError("document not valid : " + this.resultPattern.toString() + "<br/>");
             throw new SAXException(this.saxParser.char, this.saxParser.index, "document not valid");
 		} else {
 			this.result.innerHTML += "<h4>That XML is valid</h4>";

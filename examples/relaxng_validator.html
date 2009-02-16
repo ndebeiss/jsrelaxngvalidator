@@ -1,8 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 	<head>
-
-		<script type="text/javascript" src="xml_samples.js"></script>
+    
 		<script type="text/javascript" src="../jsrelaxngvalidator/sax.js"></script>
 		<script type="text/javascript" src="../jsrelaxngvalidator/dom_utils.js"></script>
 		<script type="text/javascript" src="../jsrelaxngvalidator/applyXslt.js"></script>
@@ -12,9 +11,9 @@
 		<script type="text/javascript" src="../jsrelaxngvalidator/validator_objects.js"></script>
 		<script type="text/javascript">
 		
-		var xml = loadXml3();
+		var xml = loadXMLDoc("xml/one_element_ns_valid.xml");
 		
-		var relaxng = createDocumentFromText(loadRelaxng3());
+		var relaxng = loadXMLDoc("schemas/one_element.rng");
 		
 		var stepIndex = 0;
 		
@@ -95,7 +94,7 @@
 	
 	<body>
         <input class="execute" type="button" value="Validate XML" onclick="validateXml('validation_result', 'sax_events')" />
-        <div id="validation_result"/>
+        <div id="validation_result"></div>
         <input type="checkbox" onclick="showDebug(this)"/>Show debug messages.
         <div id="debug" style="display: none">
             <h4><span class="grey">SAX </span><span class="yellow">events</span></h4>
