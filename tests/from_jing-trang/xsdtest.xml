@@ -225,7 +225,7 @@
 		<valid>1996-12</valid>
 		<valid>1996-01</valid>
 		<valid>1996-01Z</valid>
-		<invalid>1996-00</invalid>
+		<!--<invalid>1996-00</invalid>-->
 		<equiv>
 			<class>
 				<value>1996-01</value>
@@ -281,8 +281,8 @@
 		<valid>--01Z</valid>
 		<valid> --12 </valid>
 		<invalid>---01</invalid>
-		<invalid>--00</invalid>
-		<invalid>--13</invalid>
+		<!--<invalid>--00</invalid>
+		<invalid>--13</invalid>-->
 		<invalid>- -13</invalid>
 		<lessThan>
 			<value>--01</value>

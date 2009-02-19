@@ -5,7 +5,7 @@
 	<script language="JavaScript" src="../jsrelaxngvalidator/validator_objects.js"></script>
 	<script language="JavaScript" src="../jsrelaxngvalidator/dom_utils.js"></script>
     <script language="JavaScript" src="../jsrelaxngvalidator/applyXslt.js"></script>
-    <script language="JavaScript" src="manageWhiteSpace.js"></script>
+	<script language="JavaScript" src="manageWhiteSpace.js"></script>
     <script language="JavaScript">
 	var datatypeLibrary = new DatatypeLibrary();
 
@@ -77,6 +77,11 @@
             var validNodes = datatypeNode.getElementsByTagName("valid");
             for (var j = 0 ; j < validNodes.length ; j++) {
                 var value = data_of(validNodes.item(j).childNodes.item(0));
+                datatypeAllows_true(name, value);
+            }
+			var valueNodes = datatypeNode.getElementsByTagName("value");
+            for (var j = 0 ; j < valueNodes.length ; j++) {
+                var value = data_of(valueNodes.item(j).childNodes.item(0));
                 datatypeAllows_true(name, value);
             }
             var inValidNodes = datatypeNode.getElementsByTagName("invalid");

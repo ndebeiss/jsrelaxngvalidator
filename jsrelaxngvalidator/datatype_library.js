@@ -87,11 +87,11 @@ unsignedByte 	An unsigned 8-bit integer										OK
 extract from http://www.w3schools.com/Schema/schema_dtypes_misc.asp :
 
 anyURI  	 															does not do any validation
-base64Binary 	 
-boolean 	 
-double 	 
+base64Binary 	 														KO
+boolean 	 															OK
+double 	 															OK
 float 	 
-hexBinary 	 
+hexBinary 	 															OK
 NOTATION 	 
 QName 	 
 
@@ -134,23 +134,23 @@ function DatatypeLibrary() {
 	var time = "[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]*)?";
 	var timeZone = "(Z|[\-\+][0-9][0-9]:[0-5][0-9])?";
 	
-	var dateRegExp = new RegExp("^" + year + "-" + month + "-" + dayOfMonth + timeZone + "$");
+	var dateRegExp = new RegExp("^ *" + year + "-" + month + "-" + dayOfMonth + timeZone + " *$");
 	
-	var dateTimeRegExp = new RegExp("^" + year + "-" + month + "-" + dayOfMonth + "T" + time + timeZone + "$");
+	var dateTimeRegExp = new RegExp("^ *" + year + "-" + month + "-" + dayOfMonth + "T" + time + timeZone + " *$");
     
-	var durationRegExp = new RegExp("^-?P([0-9]+Y)?([0-9]+M)?([0-9]+D)?(T(?!$)([0-9]+H)?([0-9]+M)?([0-9]+(\\.[0-9]+)?S)?)?$");
+	var durationRegExp = new RegExp("^ *" + "-?P(?!$)([0-9]+Y)?([0-9]+M)?([0-9]+D)?(T(?!$)([0-9]+H)?([0-9]+M)?([0-9]+(\\.[0-9]+)?S)?)? *$");
 	
-	var gDayRexExp = new RegExp("^" + dayOfMonth + timeZone + "$");
+	var gDayRegExp = new RegExp("^ *" + "---" + dayOfMonth + timeZone + " *$");
 	
-	var gMonthRexExp = new RegExp("^" + month + timeZone + "$");
+	var gMonthRegExp = new RegExp("^ *" + "--" + month + timeZone + " *$");
 	
-	var gMonthDayRexExp = new RegExp("^--" + month + "-" + dayOfMonth + timeZone + "$");
+	var gMonthDayRegExp = new RegExp("^ *" + "--" + month + "-" + dayOfMonth + timeZone + " *$");
 	
-	var gYearRegExp = new RegExp("^" + year + timeZone + "$");
+	var gYearRegExp = new RegExp("^ *" + year + timeZone + " *$");
 	
-	var gYearMonthRegExp = new RegExp("^" + year + "-" + month + timeZone + "$");
+	var gYearMonthRegExp = new RegExp("^ *" + year + "-" + month + timeZone + " *$");
 	
-	var timeRegExp = new RegExp("^" + time + timeZone + "$");
+	var timeRegExp = new RegExp("^ *" + time + timeZone + " *$");
 	
 	var LONG_MAX = 9223372036854775807;
 	var LONG_MIN = -9223372036854775808;
@@ -166,18 +166,28 @@ function DatatypeLibrary() {
 	var UNSIGNED_SHORT_MAX = 65535;
 	var UNSIGNED_BYTE_MAX = 255;
 	
-	var integerRexExp = new RegExp("^[\-\+]?[0-9]+$");
+	var integer = "[\-\+]?[0-9]+";
 	
-	var decimalRexExp = new RegExp("^([\-\+])?[0-9]+(\\.[0-9]+)?$");
+	var integerRegExp = new RegExp("^ *" + integer + " *$");
 	
-	var negativeIntegerRexExp = new RegExp("^\-[1-9][0-9]*$");
+	var decimal = "[\-\+]?(?!$)[0-9]*(\\.[0-9]*)?";
 	
-	var nonNegativeIntegerRexExp = new RegExp("^(\\+)?([0-9])+$");
+	var decimalRegExp = new RegExp("^ *" + decimal + " *$");
+	
+	var negativeIntegerRegExp = new RegExp("^ *-[1-9][0-9]* *$");
+	
+	var nonNegativeIntegerRegExp = new RegExp("^ *(\\+)?[0-9]+ *$");
     
-	var nonPositiveIntegerRexExp = new RegExp("^\-?[0-9]+$");
+	var nonPositiveIntegerRegExp = new RegExp("^ *-?[0-9]+ *$");
 	
-	var positiveIntegerRexExp = new RegExp("^(\\+)?[1-9][0-9]*$");
+	var positiveIntegerRegExp = new RegExp("^ *(\\+)?[1-9][0-9]* *$");
     
+	var booleanRegExp = new RegExp("(^ *true *$)|(^ *false *$)|(^ *0 *$)|(^ *1 *$)", "i");
+	
+	var doubleRegExp = new RegExp("(^ *-?INF *$)|(^ *NaN *$)|(^ *" + decimal + "([Ee]" + integer + ")? *$)");
+	
+	var hexBinaryRegExp = new RegExp("^ *" + "[0-9a-fA-F]+" + " *$");
+	
 	/*
 	datatypeAllows :: Datatype -> ParamList -> String -> Context -> Bool
 	datatypeAllows ("",  "string") [] _ _ = True
@@ -220,21 +230,21 @@ function DatatypeLibrary() {
 			} else if (datatype.localName == "byte") {
 				return this.checkIntegerRange(BYTE_MIN, BYTE_MAX, string, datatype);
 			} else if (datatype.localName == "decimal") {
-				return this.checkRegExp(decimalRexExp, string, datatype);
+				return this.checkRegExp(decimalRegExp, string, datatype);
 			} else if (datatype.localName == "int") {
 				return this.checkIntegerRange(INT_MIN, INT_MAX, string, datatype);
 			} else if (datatype.localName == "integer") {
-				return this.checkRegExp(integerRexExp, string, datatype);
+				return this.checkRegExp(integerRegExp, string, datatype);
 			} else if (datatype.localName == "long") {
 				return this.checkIntegerRange(LONG_MIN, LONG_MAX, string, datatype);
 			} else if (datatype.localName == "negativeInteger") {
-				return this.checkRegExp(negativeIntegerRexExp, string, datatype);
+				return this.checkRegExp(negativeIntegerRegExp, string, datatype);
 			} else if (datatype.localName == "nonNegativeInteger") {
-				return this.checkRegExp(nonNegativeIntegerRexExp, string, datatype);
+				return this.checkRegExp(nonNegativeIntegerRegExp, string, datatype);
 			} else if (datatype.localName == "nonPositiveInteger") {
-				return this.checkRegExp(nonPositiveIntegerRexExp, string, datatype);
+				return this.checkRegExp(nonPositiveIntegerRegExp, string, datatype);
 			} else if (datatype.localName == "positiveInteger") {
-				return this.checkRegExp(positiveIntegerRexExp, string, datatype);
+				return this.checkRegExp(positiveIntegerRegExp, string, datatype);
 			} else if (datatype.localName == "short") {
 				return this.checkIntegerRange(SHORT_MIN, SHORT_MAX, string, datatype);
 			} else if (datatype.localName == "unsignedLong") {
@@ -247,6 +257,12 @@ function DatatypeLibrary() {
 				return this.checkIntegerRange(0, UNSIGNED_BYTE_MAX, string, datatype);
 			} else if (datatype.localName == "anyURI") {
 				return new Empty();
+			} else if (datatype.localName == "boolean") {
+				return this.checkRegExp(booleanRegExp, string, datatype);
+			} else if (datatype.localName == "double") {
+				return this.checkRegExp(doubleRegExp, string, datatype);
+			} else if (datatype.localName == "hexBinary") {
+				return this.checkRegExp(hexBinaryRegExp, string, datatype);
 			} else {
 				return new Empty();
 			}
@@ -290,21 +306,15 @@ function DatatypeLibrary() {
 	}
 	
 	this.checkIntegerRange = function(min, max, string, datatype) {
-		if (regExp.test(integerRexExp, string, datatype)) {
+		if (regExp.test(integerRegExp, string, datatype)) {
 			return new NotAllowed("invalid " + datatype.localName, datatype, string);
 		} else {
-			var integer = parseInt(string);
-			if (integer >= min && integer <= max) {
+			var intValue = parseInt(string);
+			if (intValue >= min && intValue <= max) {
 				return new Empty();
 			}
 			return new NotAllowed("invalid integer range, min is " + min + ", max is " + max + " for datatype " + datatype.localName, datatype, string);
 		}
 	}
-
-
-
-
-
-
-
+	
 }
