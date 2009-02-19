@@ -117,7 +117,7 @@ function DatatypeLibrary() {
 	//http://www.w3.org/TR/xml/#NT-Name
 	var nameStartChar = "A-Z_a-z\\hC0-\\hD6\\hD8-\\hF6\\hF8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD";
     //\\u10000-\\uEFFFF
-	var nameChar = nameStartChar + "\-\.0-9\\hB7\\u0300-\\u036F\\u203F-\\u2040";
+	var nameChar = nameStartChar + "\-\\.0-9\\hB7\\u0300-\\u036F\\u203F-\\u2040";
 	var nameRegExp = new RegExp("^[:" + nameStartChar + "][:" + nameChar + "]*$");
 	var ncNameRegExp = new RegExp("^[" + nameStartChar + "][" + nameChar + "]*$");
 
@@ -132,13 +132,13 @@ function DatatypeLibrary() {
     var month = "[0-9]{2}";
 	var dayOfMonth = "[0-9]{2}";
 	var time = "[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]*)?";
-	var timeZone = "(Z|[+\\-][0-9][0-9]:[0-5][0-9])?";
+	var timeZone = "(Z|[\-\+][0-9][0-9]:[0-5][0-9])?";
 	
 	var dateRegExp = new RegExp("^" + year + "-" + month + "-" + dayOfMonth + timeZone + "$");
 	
 	var dateTimeRegExp = new RegExp("^" + year + "-" + month + "-" + dayOfMonth + "T" + time + timeZone + "$");
     
-	var durationRegExp = new RegExp("^-?P([0-9]+Y)?([0-9]+M)?([0-9]+D)?(T([0-9]+H)?([0-9]+M)?(([0-9]+(\\.[0-9]*)?|\\.[0-9]+)S)?)?$");
+	var durationRegExp = new RegExp("^-?P([0-9]+Y)?([0-9]+M)?([0-9]+D)?(T(?!$)([0-9]+H)?([0-9]+M)?([0-9]+(\\.[0-9]+)?S)?)?$");
 	
 	var gDayRexExp = new RegExp("^" + dayOfMonth + timeZone + "$");
 	
@@ -168,7 +168,7 @@ function DatatypeLibrary() {
 	
 	var integerRexExp = new RegExp("^[\-\+]?[0-9]+$");
 	
-	var decimalRexExp = new RegExp("^([\-\+])?[0-9]+(.[0-9]+)?$");
+	var decimalRexExp = new RegExp("^([\-\+])?[0-9]+(\\.[0-9]+)?$");
 	
 	var negativeIntegerRexExp = new RegExp("^\-[1-9][0-9]*$");
 	
@@ -176,7 +176,7 @@ function DatatypeLibrary() {
     
 	var nonPositiveIntegerRexExp = new RegExp("^\-?[0-9]+$");
 	
-	var positiveIntegerRexExp = new RegExp("^\\+?[1-9][0-9]*$");
+	var positiveIntegerRexExp = new RegExp("^(\\+)?[1-9][0-9]*$");
     
 	/*
 	datatypeAllows :: Datatype -> ParamList -> String -> Context -> Bool
