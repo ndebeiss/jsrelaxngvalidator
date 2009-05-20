@@ -130,7 +130,7 @@ function RelaxNGValidator(result, sax_events, relaxng, debug) {
 		this.pattern = this.getPattern(getFirstChildElement(start), this.context);
 		
 		if (this.debug) {
-			this.debugMsg("parsing the schema resulted in that pattern = <br/>" + this.pattern.toString());
+			this.debugMsg("parsing the schema resulted in that pattern = <br/>" + this.pattern.toHTML());
 		}
 	};
 	
@@ -355,14 +355,14 @@ function RelaxNGValidator(result, sax_events, relaxng, debug) {
 	this.endDocument = function() {
 		this.sax_events.innerHTML += "endDocument<br/>";
 		if (this.debug) {
-			this.debugMsg("validating childNode =<br/>" + this.childNode.toString());
+			this.debugMsg("validating childNode =<br/>" + this.childNode.toHTML());
 		}
 		this.resultPattern = this.validatorFunctions.childDeriv(this.context, this.pattern, this.childNode);
 		if (this.debug) {
-			this.debugMsg("result pattern of that validation is =<br/>" + this.resultPattern.toString());
+			this.debugMsg("result pattern of that validation is =<br/>" + this.resultPattern.toHTML());
 		}
 		if (this.resultPattern instanceof NotAllowed) {
-			this.fireRelaxngError("document not valid : " + this.resultPattern.toString() + "<br/>");
+			this.fireRelaxngError("document not valid : " + this.resultPattern.toHTML() + "<br/>");
             throw new SAXException(this.saxParser.char, this.saxParser.index, "document not valid");
 		} else {
 			this.result.innerHTML += "<h4>That XML is valid</h4>";

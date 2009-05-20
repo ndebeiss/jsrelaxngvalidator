@@ -10,68 +10,71 @@
 	<script language="JavaScript" src="../jsrelaxngvalidator/validator_objects.js"></script>
 	<script language="JavaScript" src="manageWhiteSpace.js"></script>
     <script language="JavaScript">
-	
-	var one_element;
-	
+    
+    var one_element;
+    
     function setUp() {
-		one_element = createDocumentFromText(loadFile("../examples/schemas/one_element.rng"));
+        one_element = createDocumentFromText(loadFile("../examples/schemas/one_element.rng"));
     }
     
-	function testValidate_valid() {
-		var xml = loadFile("../examples/xml/one_element_valid.xml");
-		var pattern = validate(xml, one_element);
-		assertTrue(pattern instanceof Empty);
-	}
-	
-	function testValidate_valid_default_ns() {
-		var xml = loadFile("../examples/xml/one_element_valid_default_ns.xml");
-		var pattern = validate(xml, one_element);
-		assertTrue(pattern instanceof Empty);
-	}
-	
-	function testValidate_invalid_no_ns() {
-		var xml = loadFile("../examples/xml/one_element_invalid_no_ns.xml");
-		var pattern = validate(xml, one_element);
-		assertTrue(pattern instanceof NotAllowed);
-	}
-	
-	function testValidate_invalid_elem_name() {
-		var xml = loadFile("../examples/xml/one_element_invalid_elem_name.xml");
-		var pattern = validate(xml, one_element);
-		assertTrue(pattern instanceof NotAllowed);
-	}
-	
-	function testValidate_invalid_empty_text() {
-		var xml = loadFile("../examples/xml/one_element_invalid_empty_text.xml");
-		var pattern = validate(xml, one_element);
-		assertTrue(pattern instanceof NotAllowed);
-	}
-	
-	function testValidate_invalid_elem() {
-		var xml = loadFile("../examples/xml/one_element_invalid_elem.xml");
-		var pattern = validate(xml, one_element);
-		assertTrue(pattern instanceof NotAllowed);
-	}
-	
-	function testValidate_invalid_attr() {
-		var xml = loadFile("../examples/xml/one_element_invalid_attr.xml");
-		var pattern = validate(xml, one_element);
-		assertTrue(pattern instanceof NotAllowed);
-	}
+    function testValidate_valid() {
+        validate_one_element_valid("../examples/xml/one_element_valid.xml");
+    }
     
-	function validate(xml, relaxng) {
-		var validation_result = document.getElementById('validation_result');
-		var sax_events = document.getElementById('sax_events');
-		sax_events.innerHTML = "";
-		
-		var relaxNGValidator = new RelaxNGValidator(validation_result, sax_events, relaxng);
-		var saxParser = new SAXParser(relaxNGValidator);
-		relaxNGValidator.setSaxParser(saxParser);
-		saxParser.parse(xml);
-		return relaxNGValidator.resultPattern;
-	}
-	
+    function testValidate_valid_default_ns() {
+        validate_one_element_valid("../examples/xml/one_element_valid_default_ns.xml");
+    }
     
+    function testValidate_invalid_no_ns() {
+        validate_one_element_invalid("../examples/xml/one_element_invalid_no_ns.xml");
+    }
+    
+    function testValidate_invalid_elem_name() {
+        validate_one_element_invalid("../examples/xml/one_element_invalid_elem_name.xml");
+    }
+    
+    function testValidate_invalid_empty_text() {
+        validate_one_element_invalid("../examples/xml/one_element_invalid_empty_text.xml");
+    }
+    
+    function testValidate_invalid_elem() {
+        validate_one_element_invalid("../examples/xml/one_element_invalid_elem.xml");
+    }
+    
+    function testValidate_invalid_attr() {
+        validate_one_element_invalid("../examples/xml/one_element_invalid_attr.xml");
+    }
+    
+    function testValidate_simple() {
+        var xml = loadFile("../examples/xml/one_element_invalid_attr.xml");
+        var schema = createDocumentFromText(loadFile("../examples/schemas/simple.rng"));
+        var pattern = validate(xml, schema);
+        assertTrue(pattern instanceof Empty);
+    }
+    
+    function validate_one_element_valid(xml_path) {
+        var xml = loadFile(xml_path);
+        var pattern = validate(xml, one_element);
+        assertTrue(pattern instanceof Empty);
+    }
+    
+    function validate_one_element_invalid(xml_path) {
+        var xml = loadFile(xml_path);
+        var pattern = validate(xml, one_element);
+        assertTrue(pattern instanceof NotAllowed);
+    }
+    
+    function validate(xml, relaxng) {
+        var validation_result = document.getElementById('validation_result');
+        var sax_events = document.getElementById('sax_events');
+        sax_events.innerHTML = "";
+        
+        var relaxNGValidator = new RelaxNGValidator(validation_result, sax_events, relaxng);
+        var saxParser = new SAXParser(relaxNGValidator);
+        relaxNGValidator.setSaxParser(saxParser);
+        saxParser.parse(xml);
+        return relaxNGValidator.resultPattern;
+    }
 
     </script>
   </head>

@@ -36,12 +36,12 @@
 		function recordStep(message, pattern, childNode) {
 			var patternDiv = document.createElement('div');
 			patternDiv.id = idPattern + stepIndex;
-			patternDiv.innerHTML = "<h4>" + message + "</h4>" + pattern.toString();
+			patternDiv.innerHTML = "<h4>" + message + "</h4>" + pattern.toHTML();
 			patternDiv.style.display = 'none';
 			document.getElementById('pattern').appendChild(patternDiv);
 			var childNodeDiv = document.createElement('div');
 			childNodeDiv.id = idChildNode + stepIndex;
-			childNodeDiv.innerHTML = childNode.toString();
+			childNodeDiv.innerHTML = childNode.toHTML();
 			childNodeDiv.style.display = 'none';
 			document.getElementById('childNode').appendChild(childNodeDiv);
 			stepIndex++;
