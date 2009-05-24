@@ -256,7 +256,12 @@ function Data(datatype, paramList) {
 	this.datatype = datatype;
 	this.paramList = paramList;
 	this.toHTML = function() {
-		return "<table><tr><th>Data</th></tr><tr><td>datatype</td><td>" + this.datatype.toHTML() + "</td></tr><tr><td>paramList</td><td>" + this.paramList.toHTML() + "</td></tr></table>";
+		var string = "<table><tr><th>Data</th></tr><tr><td>datatype</td><td>" + this.datatype.toHTML() + "</td></tr><tr><td><table><tr><th>paramList</th></tr>"
+        var i = this.paramList.length;
+        while (i--) {
+			string += "<tr><td>" + this.paramList[i].toHTML() + "</td></tr>";
+		}
+		return string + "</table></td></tr></table>";
 	}
 }
 function DataExcept(datatype, paramList, pattern) {
@@ -264,7 +269,12 @@ function DataExcept(datatype, paramList, pattern) {
 	this.paramList = paramList;
 	this.pattern = pattern;
 	this.toHTML = function() {
-		return "<table><tr><th>Data</th></tr><tr><td>datatype</td><td>" + this.datatype.toHTML() + "</td></tr><tr><td>paramList</td><td>" + this.paramList.toHTML() + "</td></tr><tr><td>pattern</td><td>" + this.pattern.toHTML() + "</td></tr></table>";
+        var string = "<table><tr><th>DataExcept</th></tr><tr><td>datatype</td><td>" + this.datatype.toHTML() + "</td></tr><tr><td><table><tr><th>paramList</th></tr>"
+        var i = this.paramList.length;
+        while (i--) {
+			string += "<tr><td>" + this.paramList[i].toHTML() + "</td></tr>";
+		}
+		return string + "</table></td></tr><tr><td>pattern</td><td>" + this.pattern.toHTML() + "</td></tr></table>";
 	}
 }
 function Value(datatype, string, context) {
