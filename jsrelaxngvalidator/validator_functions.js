@@ -309,9 +309,9 @@ function ValidatorFunctions(relaxNGValidator, datatypeLibrary) {
     */
     this.after = function(pattern1, pattern2) {
         if (pattern2 instanceof NotAllowed) {
-            return pattern1;
-        } else if (pattern1 instanceof NotAllowed) {
             return pattern2;
+        } else if (pattern1 instanceof NotAllowed) {
+            return pattern1;
         } else {
             return new After(pattern1, pattern2);
         }
@@ -526,8 +526,9 @@ function ValidatorFunctions(relaxNGValidator, datatypeLibrary) {
             return this.group(attDerivResult, this.choice(pattern.pattern, new Empty()));
         } else if (pattern instanceof Attribute) {
             var attributeNameCheck = this.contains(pattern.nameClass, attributeNode.qName);
-            if (attributeNameCheck && this.valueMatch(context, pattern.pattern, attributeNode.string, attributeNode)) {
-                return new Empty();
+            if (attributeNameCheck) {
+                var valueMatched = this.valueMatch(context, pattern.pattern, attributeNode.string, attributeNode);
+                return valueMatched;
             } else {
                 return new NotAllowed("invalid attribute", pattern, attributeNode);
             }
@@ -549,7 +550,12 @@ function ValidatorFunctions(relaxNGValidator, datatypeLibrary) {
             return true;
         }
         var textDerivResult = this.textDeriv(context, pattern, string, childNode);
-        return this.nullable(textDerivResult);
+        //in order to keep original NotAllowed pattern
+        if (this.nullable(textDerivResult)) {
+            return new Empty();
+        } else {
+            return textDerivResult;
+        }
     }
 
     /*
