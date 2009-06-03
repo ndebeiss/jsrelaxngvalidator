@@ -248,7 +248,18 @@ function ValidatorFunctions(relaxNGValidator, datatypeLibrary) {
     choice p1 p2 = Choice p1 p2
     */
     this.choice = function(pattern1, pattern2) {
-        if (pattern2 instanceof NotAllowed) {
+        // in that case choose between NotAllowed according to their priority
+        if (pattern1 instanceof NotAllowed && pattern2 instanceof NotAllowed) {
+            if (!pattern1.priority) {
+                return pattern2;
+            } else if (!pattern2.priority) {
+                return pattern1;
+            }
+            if (pattern1.priority < pattern2.priority) {
+                return pattern2;
+            }
+            return pattern1;
+        } else if (pattern2 instanceof NotAllowed) {
             return pattern1;
         } else if (pattern1 instanceof NotAllowed) {
             return pattern2;

@@ -412,7 +412,7 @@ B64         ::=  [A-Za-z0-9+/]
                 if (value.toLowerCase() == patternValue.toLowerCase()) {
                     return new Empty();
                 } else {
-                    return new NotAllowed("invalid value, expected is " + patternValue, datatype, string);
+                    return new NotAllowed("invalid value, expected is " + patternValue, datatype, string, 10);
                 }
                 
             } else if (datatype.localName == "float" || datatype.localName == "double" || datatype.localName == "decimal") {
@@ -421,7 +421,7 @@ B64         ::=  [A-Za-z0-9+/]
                 if (value == patternValue) {
                     return new Empty();
                 } else {
-                    return new NotAllowed("invalid value, expected is " + patternValue, datatype, string);
+                    return new NotAllowed("invalid value, expected is " + patternValue, datatype, string, 10);
                 }
                 
             } else if (datatype.localName == "integer" || datatype.localName == "long" || datatype.localName == "int" || datatype.localName == "short" || datatype.localName == "byte" || datatype.localName == "negativeInteger" || datatype.localName == "nonPositiveInteger" || datatype.localName == "nonNegativeInteger" || datatype.localName == "positiveInteger" || datatype.localName == "unsignedLong" || datatype.localName == "unsignedInt" || datatype.localName == "unsignedShort" || datatype.localName == "unsignedByte") {
@@ -430,7 +430,7 @@ B64         ::=  [A-Za-z0-9+/]
                 if (value == patternValue) {
                     return new Empty();
                 } else {
-                    return new NotAllowed("invalid value, expected is " + patternValue, datatype, string);
+                    return new NotAllowed("invalid value, expected is " + patternValue, datatype, string, 10);
                 }
                 
             } else if (datatype.localName == "anyURI" || datatype.localName == "QName" || datatype.localName == "NOTATION") {
@@ -439,7 +439,7 @@ B64         ::=  [A-Za-z0-9+/]
                 if (value == patternValue) {
                     return new Empty();
                 } else {
-                    return new NotAllowed("invalid value, expected is " + patternValue, datatype, string);
+                    return new NotAllowed("invalid value, expected is " + patternValue, datatype, string, 10);
                 }
                 
             } else if (datatype.localName == "string" || datatype.localName == "normalizedString" || datatype.localName == "token" || datatype.localName == "language" || datatype.localName == "Name" || datatype.localName == "NCName") {
@@ -448,7 +448,7 @@ B64         ::=  [A-Za-z0-9+/]
                 if (value == patternValue) {
                     return new Empty();
                 } else {
-                    return new NotAllowed("invalid value, expected is " + patternValue, datatype, string);
+                    return new NotAllowed("invalid value, expected is " + patternValue, datatype, string, 10);
                 }
                 
             } else if (datatype.localName == "base64Binary") {
@@ -457,7 +457,7 @@ B64         ::=  [A-Za-z0-9+/]
                 if (value == patternValue) {
                     return new Empty();
                 } else {
-                    return new NotAllowed("invalid value, expected is " + patternValue, datatype, string);
+                    return new NotAllowed("invalid value, expected is " + patternValue, datatype, string, 10);
                 }
                 
             } else if (datatype.localName == "hexBinary") {
@@ -467,7 +467,7 @@ B64         ::=  [A-Za-z0-9+/]
                 if (value.toUpperCase() == patternValue.toUpperCase()) {
                     return new Empty();
                 } else {
-                    return new NotAllowed("invalid value, expected is " + patternValue, datatype, string);
+                    return new NotAllowed("invalid value, expected is " + patternValue, datatype, string, 10);
                 }
                 
             } else {
@@ -507,12 +507,12 @@ B64         ::=  [A-Za-z0-9+/]
         //min can be undefined if condition is just inferior
         if (min != undefined) {
             if (intValue < min) {
-                return new NotAllowed("integer value is too small, minimum is " + min + " for datatype " + datatype.localName, datatype, string);
+                return new NotAllowed("integer value is too small, minimum is " + min + " for datatype " + datatype.localName, datatype, string, 10);
             }
         }
         if (max != undefined) {
             if (intValue > max) {
-                return new NotAllowed("integer value is too big, maximum is " + max + " for datatype " + datatype.localName, datatype, string);
+                return new NotAllowed("integer value is too big, maximum is " + max + " for datatype " + datatype.localName, datatype, string, 10);
             }
         }
         return this.checkParams(string, datatype, paramList);
@@ -530,7 +530,7 @@ B64         ::=  [A-Za-z0-9+/]
         if (regExp.test(string)) {
             return new Empty();
         }
-        return new NotAllowed("invalid " + datatype.localName, datatype, string);
+        return new NotAllowed("invalid " + datatype.localName, datatype, string, 10);
     };
     
     /*
@@ -538,7 +538,7 @@ B64         ::=  [A-Za-z0-9+/]
             */
     this.checkExclusiveRegExp = function(regExp, string, datatype) {
         if (regExp.test(string)) {
-            return new NotAllowed("invalid " + datatype.localName, datatype, string);
+            return new NotAllowed("invalid " + datatype.localName, datatype, string, 10);
         }
         return new Empty();
     };
@@ -547,7 +547,7 @@ B64         ::=  [A-Za-z0-9+/]
         if (string.match(":")) {
             var prefix = string.split(":")[0];
             if (context.map[prefix] == undefined) {
-                return new NotAllowed("prefix " + prefix + " not declared", datatype, string);
+                return new NotAllowed("prefix " + prefix + " not declared", datatype, string, 10);
             }
         }
         return new Empty();
@@ -581,47 +581,47 @@ B64         ::=  [A-Za-z0-9+/]
         if (param.localName == "length") {
             var number = parseInt(param.string);
             if (string.length != number) {
-                return new NotAllowed("invalid number of characters, expected : " + number + ", found : " + string.length, datatype, string);
+                return new NotAllowed("invalid number of characters, expected : " + number + ", found : " + string.length, datatype, string, 10);
             }
         } else if (param.localName == "minLength") {
             var number = parseInt(param.string);
             if (string.length < number) {
-                return new NotAllowed("string too small, " + param.localName + " is : " + number + ", found : " + string.length, datatype, string);
+                return new NotAllowed("string too small, " + param.localName + " is : " + number + ", found : " + string.length, datatype, string, 10);
             }
         } else if (param.localName == "maxLength") {
             var number = parseInt(param.string);
             if (string.length > number) {
-                return new NotAllowed("string too long, " + param.localName + " is : " + number + ", found : " + string.length, datatype, string);
+                return new NotAllowed("string too long, " + param.localName + " is : " + number + ", found : " + string.length, datatype, string, 10);
             }
         } else if (param.localName == "minInclusive") {
             var number = parseFloat(param.string);
             var value = parseFloat(string);
             if (value < number) {
-                return new NotAllowed("value too small, " + param.localName + " is : " + number + ", found : " + value, datatype, string);
+                return new NotAllowed("value too small, " + param.localName + " is : " + number + ", found : " + value, datatype, string, 10);
             }
         } else if (param.localName == "minExclusive") {
             var number = parseFloat(param.string);
             var value = parseFloat(string);
             if (value <= number) {
-                return new NotAllowed("value too small, " + param.localName + " is : " + number + ", found : " + value, datatype, string);
+                return new NotAllowed("value too small, " + param.localName + " is : " + number + ", found : " + value, datatype, string, 10);
             }
         } else if (param.localName == "maxInclusive") {
             var number = parseFloat(param.string);
             var value = parseFloat(string);
             if (value > number) {
-                return new NotAllowed("value too big, " + param.localName + " is : " + number + ", found : " + value, datatype, string);
+                return new NotAllowed("value too big, " + param.localName + " is : " + number + ", found : " + value, datatype, string, 10);
             }
         } else if (param.localName == "maxExclusive") {
             var number = parseFloat(param.string);
             var value = parseFloat(string);
             if (value >= number) {
-                return new NotAllowed("value too big, " + param.localName + " is : " + number + ", found : " + value, datatype, string);
+                return new NotAllowed("value too big, " + param.localName + " is : " + number + ", found : " + value, datatype, string, 10);
             }
         } else if (param.localName == "totalDigits") {
             var number = parseInt(param.string);
             var length = string.replace(/\./, "").length;
             if (length != number) {
-                return new NotAllowed("invalid number of digits, " + param.localName + " is : " + number + ", found : " + length, datatype, string);
+                return new NotAllowed("invalid number of digits, " + param.localName + " is : " + number + ", found : " + length, datatype, string, 10);
             }
         } else if (param.localName == "fractionDigits") {
             var number = parseInt(param.string);
@@ -629,7 +629,7 @@ B64         ::=  [A-Za-z0-9+/]
             var check = this.checkRegExp(regExp, string, datatype);
             //adds an error message
             if (check instanceof NotAllowed) {
-                return new NotAllowed("invalid number of fraction digits, expected : " + number, check, string);
+                return new NotAllowed("invalid number of fraction digits, expected : " + number, check, string, 10);
             }
         } else if (param.localName == "pattern") {
             var escaped = param.string.replace(/\\/gm, "\\\\");
@@ -637,7 +637,7 @@ B64         ::=  [A-Za-z0-9+/]
             var check = this.checkRegExp(regExp, string, datatype);
             //adds an error message
             if (check instanceof NotAllowed) {
-                return new NotAllowed("value : " + string + " does not respect pattern : " + param.string, check, string);
+                return new NotAllowed("value : " + string + " does not respect pattern : " + param.string, check, string, 10);
             }
         }
         return new Empty();
@@ -659,7 +659,7 @@ B64         ::=  [A-Za-z0-9+/]
             msg += "," + value;
         }
         msg += "]";
-        return new NotAllowed(msg, datatype, string);
+        return new NotAllowed(msg, datatype, string, 10);
     };
     
 };
