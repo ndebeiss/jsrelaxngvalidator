@@ -79,12 +79,12 @@ function RelaxNGValidator(result, sax_events, relaxng, debug) {
 	this.extractNamespaces(relaxng.documentElement, relaxng, this.relaxng_namespaces);
 	
 	//first transformation is to import included schemas
-	this.relaxng = applyXslt(relaxng, "../jsrelaxngvalidator/rng-simplification/rng-simplification_step1.xsl");
+	this.relaxng = applyXslt(relaxng, "rng-simplification/rng-simplification_step1.xsl");
 	this.extractNamespaces(this.relaxng.documentElement, this.relaxng, this.relaxng_namespaces);
 	
 	//TODO 18
 	for (var i = 2 ; i < 17 ; i++) {
-		this.relaxng = applyXslt(this.relaxng, "../jsrelaxngvalidator/rng-simplification/rng-simplification_step" + i + ".xsl");
+		this.relaxng = applyXslt(this.relaxng, "rng-simplification/rng-simplification_step" + i + ".xsl");
 		//work around the bug of firefox XSLT processor which does not copy namespaces mappings with function xsl:copy
 		this.dumpNamespaces(this.relaxng.documentElement);
 	}
@@ -244,6 +244,11 @@ function RelaxNGValidator(result, sax_events, relaxng, debug) {
 			//param	??::=??	<param name="NCName"> string </param>
 			if (childNode.nodeName == 'rng:param') {
 				var name = childNode.getAttribute('name');
+                //actually that param name should not have any prefix, but if not respected
+                var index = name.indexOf(":");
+                if (index !== -1) {
+                    name = name.substr(index + 1);
+                }
 				var string = textContent(childNode);
 				paramList.push(new Param(name,string));
 			//exceptPattern	??::=??	<except> pattern </except>

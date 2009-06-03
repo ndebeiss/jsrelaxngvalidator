@@ -12,73 +12,117 @@
     <script language="JavaScript">
     
     var one_element;
+    var simple;
     
     function setUp() {
-        one_element = createDocumentFromText(loadFile("../examples/schemas/one_element.rng"));
+        one_element = createDocumentFromText(loadFile("examples/schemas/one_element.rng"));
+        simple = createDocumentFromText(loadFile("examples/schemas/simple.rng"));
     }
     
     function testValidate_valid() {
-        validate_one_element_valid("../examples/xml/one_element_valid.xml");
+        validate_one_element_valid("examples/xml/one_element_valid.xml");
     }
     
     function testValidate_valid_default_ns() {
-        validate_one_element_valid("../examples/xml/one_element_valid_default_ns.xml");
+        validate_one_element_valid("examples/xml/one_element_valid_default_ns.xml");
     }
     
     function testValidate_invalid_no_ns() {
-        validate_one_element_invalid("../examples/xml/one_element_invalid_no_ns.xml");
+        validate_one_element_invalid("examples/xml/one_element_invalid_no_ns.xml");
     }
     
     function testValidate_invalid_elem_name() {
-        validate_one_element_invalid("../examples/xml/one_element_invalid_elem_name.xml");
+        validate_one_element_invalid("examples/xml/one_element_invalid_elem_name.xml");
     }
     
     function testValidate_invalid_empty_text() {
-        validate_one_element_invalid("../examples/xml/one_element_invalid_empty_text.xml");
+        validate_one_element_invalid("examples/xml/one_element_invalid_empty_text.xml");
     }
     
     function testValidate_invalid_elem() {
-        validate_one_element_invalid("../examples/xml/one_element_invalid_elem.xml");
+        validate_one_element_invalid("examples/xml/one_element_invalid_elem.xml");
     }
     
     function testValidate_invalid_attr() {
-        validate_one_element_invalid("../examples/xml/one_element_invalid_attr.xml");
+        validate_one_element_invalid("examples/xml/one_element_invalid_attr.xml");
     }
-    
-    function testValidate_simple() {
-        var xml = loadFile("../examples/xml/one_element_invalid_attr.xml");
-        var schema = createDocumentFromText(loadFile("../examples/schemas/simple.rng"));
-        var pattern = validate(xml, schema);
-        assertTrue(pattern instanceof Empty);
-    }
-    
+        
     function validate_one_element_valid(xml_path) {
         var xml = loadFile(xml_path);
         var pattern = validate(xml, one_element);
-        assertTrue(pattern instanceof Empty);
+        assertTrue(pattern.toHTML(), pattern instanceof Empty);
     }
     
     function validate_one_element_invalid(xml_path) {
         var xml = loadFile(xml_path);
         var pattern = validate(xml, one_element);
-        assertTrue(pattern instanceof NotAllowed);
+        assertTrue(pattern.toHTML(), pattern instanceof NotAllowed);
+    }
+    
+    function testValidate_simple() {
+        var xml = loadFile("examples/xml/simple.xml");
+        var pattern = validate(xml, simple);
+        assertTrue(pattern.toHTML(), pattern instanceof Empty);
+    }
+    
+    function testValidate_simple_invalid_integer() {
+        var xml = loadFile("examples/xml/simple_invalid_integer.xml");
+        var pattern = validate(xml, simple);
+        assertTrue(pattern.toHTML(), pattern instanceof NotAllowed);
+        assertEquals("validation message not correct", "invalid integer", pattern.message);
+    }
+    
+    function testValidate_simple_invalid_city() {
+        var xml = loadFile("examples/xml/simple_invalid_city.xml");
+        var pattern = validate(xml, simple);
+        assertTrue(pattern.toHTML(), pattern instanceof NotAllowed);
+        assertEquals("validation message not correct", "value : nice does not respect pattern : [a-zA-Z][a-zA-Z][a-zA-Z]", pattern.message);
     }
     
     function validate(xml, relaxng) {
+        //null
         var validation_result = document.getElementById('validation_result');
-        var sax_events = document.getElementById('sax_events');
-        sax_events.innerHTML = "";
-        
+        //null
+        var sax_events = document.getElementById('sax_events');        
         var relaxNGValidator = new RelaxNGValidator(validation_result, sax_events, relaxng);
         var saxParser = new SAXParser(relaxNGValidator);
         relaxNGValidator.setSaxParser(saxParser);
         saxParser.parse(xml);
         return relaxNGValidator.resultPattern;
     }
+    
+    function runAllTests () {
+        setUp();
+        testValidate_valid();
+        setUp();
+        testValidate_valid_default_ns();
+        setUp();
+        testValidate_invalid_no_ns();
+        setUp();
+        testValidate_invalid_elem_name();
+        setUp();
+        testValidate_invalid_empty_text();
+        setUp();
+        testValidate_invalid_elem();
+        setUp();
+        testValidate_invalid_attr();
+        setUp();
+        testValidate_simple();
+        setUp();
+        testValidate_simple_invalid_integer();
+        setUp();
+        testValidate_simple_invalid_city();
+        alert('done!');
+    }
+    
+    // Brett added to be able to show something in console when error is thrown
+    JsUnitException.prototype.toString = function () {
+        return this.jsUnitMessage;
+    };
 
     </script>
   </head>
-  <body>
+  <body onload="runAllTests()">
     This is a Test Page for relaxng_validator.js
 		<div id="validation_result"></div>
 		<div id="sax_events"></div>

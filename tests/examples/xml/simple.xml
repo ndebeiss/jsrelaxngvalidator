@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rootmarkup id="3" type="aType">
+    <firstmarkupunderroot>aText</firstmarkupunderroot>
+    <secondmarkupunderroot name="aName">
+        <firstchoice choice="aChoice"/>
+    </secondmarkupunderroot>
+</rootmarkup>

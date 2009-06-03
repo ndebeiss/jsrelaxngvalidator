@@ -215,7 +215,14 @@ function NotAllowed(message, pattern, childNode, priority) {
     this.childNode = childNode;
     this.priority = priority;
     this.toHTML = function() {
-        return "<table><tr><th>NotAllowed</th></tr><tr><td>message</td><td>" + this.message + "</td></tr><tr><td>pattern</td><td>" + this.pattern.toHTML() + "</td></tr><tr><td>childNode</td><td>" + this.childNode.toHTML() + "</td></tr></table>";
+        var string = "<table><tr><th>NotAllowed</th></tr><tr><td>message</td><td>" + this.message + "</td></tr><tr><td>pattern</td><td>" + this.pattern.toHTML() + "</td></tr><tr><td>childNode</td><td>";
+        //childNode may be a string directly
+        if (this.childNode.toHTML) {
+            string += this.childNode.toHTML();
+        } else {
+            string += this.childNode;
+        }
+        return string + "</td></tr></table>";
     }
 }
 function Text() {

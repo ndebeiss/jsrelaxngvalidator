@@ -430,7 +430,7 @@ function ValidatorFunctions(relaxNGValidator, datatypeLibrary) {
             if (this.contains(pattern.nameClass, qName)) {
                 return this.after(pattern.pattern, new Empty());
             } else {
-                return new NotAllowed("invalid tag name" + qName.toString(), pattern.nameClass, childNode);
+                return new NotAllowed("invalid tag name", pattern.nameClass, qName);
             }
         } else if (pattern instanceof Interleave) {
             var p1Deriv = this.startTagOpenDeriv(pattern.pattern1, qName, childNode);
