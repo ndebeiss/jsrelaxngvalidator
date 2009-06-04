@@ -2,7 +2,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 	<head>
     
-		<script type="text/javascript" src="../jsrelaxngvalidator/sax.js"></script>
+        <script type="text/javascript" src="../jsrelaxngvalidator/jssaxparser-1.1/AttributesImpl.js"></script>
+        <script type="text/javascript" src="../jsrelaxngvalidator/jssaxparser-1.1/sax.js"></script>
 		<script type="text/javascript" src="../jsrelaxngvalidator/dom_utils.js"></script>
 		<script type="text/javascript" src="../jsrelaxngvalidator/applyXslt.js"></script>
         <script type="text/javascript" src="../jsrelaxngvalidator/datatype_library.js"></script>
@@ -30,7 +31,7 @@
 			var relaxNGValidator = new RelaxNGValidator(result, sax_events, relaxng);
 			var saxParser = new SAXParser(relaxNGValidator);
 			relaxNGValidator.setSaxParser(saxParser);
-			saxParser.parse(xml);
+			saxParser.parseString(xml);
 		}
 		
 		function recordStep(message, pattern, childNode) {

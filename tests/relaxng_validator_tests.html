@@ -1,15 +1,16 @@
 <html>
   <head>
-    <script language="JavaScript" src="../jsunit/app/jsUnitCore.js"></script>
-	<script language="JavaScript" src="../jsrelaxngvalidator/sax.js"></script>
-	<script language="JavaScript" src="../jsrelaxngvalidator/dom_utils.js"></script>
-	<script language="JavaScript" src="../jsrelaxngvalidator/applyXslt.js"></script>
-	<script language="JavaScript" src="../jsrelaxngvalidator/datatype_library.js"></script>
-	<script language="JavaScript" src="../jsrelaxngvalidator/relaxng_validator.js"></script>
-	<script language="JavaScript" src="../jsrelaxngvalidator/validator_functions.js"></script>
-	<script language="JavaScript" src="../jsrelaxngvalidator/validator_objects.js"></script>
-	<script language="JavaScript" src="manageWhiteSpace.js"></script>
-    <script language="JavaScript">
+    <script type="text/javascript" src="../jsunit/app/jsUnitCore.js"></script>
+    <script type="text/javascript" src="../jsrelaxngvalidator/jssaxparser-1.1/AttributesImpl.js"></script>
+    <script type="text/javascript" src="../jsrelaxngvalidator/jssaxparser-1.1/sax.js"></script>
+	<script type="text/javascript" src="../jsrelaxngvalidator/dom_utils.js"></script>
+	<script type="text/javascript" src="../jsrelaxngvalidator/applyXslt.js"></script>
+	<script type="text/javascript" src="../jsrelaxngvalidator/datatype_library.js"></script>
+	<script type="text/javascript" src="../jsrelaxngvalidator/relaxng_validator.js"></script>
+	<script type="text/javascript" src="../jsrelaxngvalidator/validator_functions.js"></script>
+	<script type="text/javascript" src="../jsrelaxngvalidator/validator_objects.js"></script>
+	<script type="text/javascript" src="manageWhiteSpace.js"></script>
+    <script type="text/javascript">
     
     var one_element;
     var simple;
@@ -80,14 +81,12 @@
     }
     
     function validate(xml, relaxng) {
-        //null
         var validation_result = document.getElementById('validation_result');
-        //null
         var sax_events = document.getElementById('sax_events');        
         var relaxNGValidator = new RelaxNGValidator(validation_result, sax_events, relaxng);
         var saxParser = new SAXParser(relaxNGValidator);
         relaxNGValidator.setSaxParser(saxParser);
-        saxParser.parse(xml);
+        saxParser.parseString(xml);
         return relaxNGValidator.resultPattern;
     }
     
