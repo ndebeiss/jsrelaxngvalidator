@@ -112,6 +112,9 @@ function Param(localName, string) {
     this.toHTML = function() {
         return "<table><tr><th>Param</th></tr><tr><td>localName</td><td>" + this.localName + "</td></tr><tr><td>string</td><td>" + this.string + "</td></tr></table>";
     }
+    this.toString = function() {
+        return "Param";
+    }
 }
 
 /*
@@ -127,6 +130,9 @@ function Context(uri, map) {
         }
         return string + "</table></td></tr></table>";
     }
+    this.toString = function() {
+        return "Context";
+    }
 }
 
 function Datatype(uri, localName) {
@@ -134,6 +140,9 @@ function Datatype(uri, localName) {
     this.localName = localName;
     this.toHTML = function() {
         return "<table><tr><th>Datatype</th></tr><tr><td>uri</td><td>" + this.uri + "</td></tr><tr><td>localName</td><td>" + this.localName + "</td></tr></table>";
+    }
+    this.toString = function() {
+        return "Datatype";
     }
 }
 
@@ -149,11 +158,17 @@ function AnyName() {
     this.toHTML = function() {
         return "<table><tr><th>AnyName</th></tr></table>";
     }
+    this.toString = function() {
+        return "AnyName";
+    }
 }
 function AnyNameExcept(nameClass) {
     this.nameClass = nameClass;
     this.toHTML = function() {
         return "<table><tr><th>AnyNameExcept</th></tr><tr><td>" + this.nameClass.toHTML() + "</td></tr></table>";
+    }
+    this.toString = function() {
+        return "AnyNameExcept";
     }
 }
 function Name(uri, localName) {
@@ -162,11 +177,17 @@ function Name(uri, localName) {
     this.toHTML = function() {
         return "<table><tr><th>Name</th></tr><tr><td>uri</td><td>" + this.uri + "</td></tr><tr><td>localName</td><td>" + this.localName + "</td></tr></table>";
     }
+    this.toString = function() {
+        return "Name";
+    }
 }
 function NsName(uri) {
     this.uri = uri;
     this.toHTML = function() {
         return "<table><tr><th>NsName</th></tr><tr><td>uri</td><td>" + this.uri + "</td></tr></table>";
+    }
+    this.toString = function() {
+        return "NsName";
     }
 }
 function NsNameExcept(uri, nameClass) {
@@ -175,12 +196,18 @@ function NsNameExcept(uri, nameClass) {
     this.toHTML = function() {
         return "<table><tr><th>NsNameExcept</th></tr><tr><td>uri</td><td>" + this.uri + "</td></tr><tr><td>nameClass</td><td>" + this.nameClass.toHTML() + "</td></tr></table>";
     }
+    this.toString = function() {
+        return "NsNameExcept";
+    }
 }
 function NameClassChoice(nameClass1, nameClass2) {
     this.nameClass1 = nameClass1;
     this.nameClass2 = nameClass2;
     this.toHTML = function() {
         return "<table><tr><th>NameClassChoice</th></tr><tr><td>nameClass1</td><td>" + this.nameClass1.toHTML() + "</td></tr><tr><td>nameClass2</td><td>" + this.nameClass2.toHTML() + "</td></tr></table>";
+    }
+    this.toString = function() {
+        return "NameClassChoice";
     }
 }
 
@@ -205,6 +232,9 @@ function Empty() {
     this.toHTML = function() {
         return "<table><tr><th>Empty</th></tr></table>";
     }
+    this.toString = function() {
+        return "Empty";
+    }
 }
 /*
 priority gives a rank of pertinence between NotAllowed message
@@ -224,10 +254,16 @@ function NotAllowed(message, pattern, childNode, priority) {
         }
         return string + "</td></tr></table>";
     }
+    this.toString = function() {
+        return "NotAllowed";
+    }
 }
 function Text() {
     this.toHTML = function() {
         return "<table><tr><th>Text</th></tr></table>";
+    }
+    this.toString = function() {
+        return "Text";
     }
 }
 function Choice(pattern1, pattern2) {
@@ -236,12 +272,18 @@ function Choice(pattern1, pattern2) {
     this.toHTML = function() {
         return "<table><tr><th>Choice</th></tr><tr><td>pattern1</td><td>" + this.pattern1.toHTML() + "</td></tr><tr><td>pattern2</td><td>" + this.pattern2.toHTML() + "</td></tr></table>";
     }
+    this.toString = function() {
+        return "Choice";
+    }
 }
 function Interleave(pattern1, pattern2) {
     this.pattern1 = pattern1;
     this.pattern2 = pattern2;
     this.toHTML = function() {
         return "<table><tr><th>Interleave</th></tr><tr><td>pattern1</td><td>" + this.pattern1.toHTML() + "</td></tr><tr><td>pattern2</td><td>" + this.pattern2.toHTML() + "</td></tr></table>";
+    }
+    this.toString = function() {
+        return "Interleave";
     }
 }
 function Group(pattern1, pattern2) {
@@ -250,17 +292,26 @@ function Group(pattern1, pattern2) {
     this.toHTML = function() {
         return "<table><tr><th>Group</th></tr><tr><td>pattern1</td><td>" + this.pattern1.toHTML() + "</td></tr><tr><td>pattern2</td><td>" + this.pattern2.toHTML() + "</td></tr></table>";
     }
+    this.toString = function() {
+        return "Group";
+    }
 }
 function OneOrMore(pattern) {
     this.pattern = pattern;
     this.toHTML = function() {
         return "<table><tr><th>OneOrMore</th></tr><tr><td>pattern</td><td>" + this.pattern.toHTML() + "</td></tr></table>";
     }
+    this.toString = function() {
+        return "OneOrMore";
+    }
 }
 function List(pattern) {
     this.pattern = pattern;
     this.toHTML = function() {
         return "<table><tr><th>List</th></tr><tr><td>pattern</td><td>" + this.pattern.toHTML() + "</td></tr></table>";
+    }
+    this.toString = function() {
+        return "List";
     }
 }
 function Data(datatype, paramList) {
@@ -273,6 +324,9 @@ function Data(datatype, paramList) {
             string += "<tr><td>" + this.paramList[i].toHTML() + "</td></tr>";
         }
         return string + "</table></td></tr></table>";
+    }
+    this.toString = function() {
+        return "Data";
     }
 }
 function DataExcept(datatype, paramList, pattern) {
@@ -287,6 +341,9 @@ function DataExcept(datatype, paramList, pattern) {
         }
         return string + "</table></td></tr><tr><td>pattern</td><td>" + this.pattern.toHTML() + "</td></tr></table>";
     }
+    this.toString = function() {
+        return "DataExcept";
+    }
 }
 function Value(datatype, string, context) {
     this.datatype = datatype;
@@ -295,12 +352,18 @@ function Value(datatype, string, context) {
     this.toHTML = function() {
         return "<table><tr><th>Data</th></tr><tr><td>datatype</td><td>" + this.datatype.toHTML() + "</td></tr><tr><td>string</td><td>" + this.string + "</td></tr><tr><td>context</td><td>" + this.context.toHTML() + "</td></tr></table>";
     }
+    this.toString = function() {
+        return "Value";
+    }
 }
 function Attribute(nameClass, pattern) {
     this.nameClass = nameClass;
     this.pattern = pattern;
     this.toHTML = function() {
         return "<table><tr><th>Attribute</th></tr><tr><td>nameClass</td><td>" + this.nameClass.toHTML() + "</td></tr><tr><td>pattern</td><td>" + this.pattern.toHTML() + "</td></tr></table>";
+    }
+    this.toString = function() {
+        return "Attribute";
     }
 }
 function Element(nameClass, pattern) {
@@ -309,12 +372,18 @@ function Element(nameClass, pattern) {
     this.toHTML = function() {
         return "<table><tr><th>Element</th></tr><tr><td>nameClass</td><td>" + this.nameClass.toHTML() + "</td></tr><tr><td>pattern</td><td>" + this.pattern.toHTML() + "</td></tr></table>";
     }
+    this.toString = function() {
+        return "Element";
+    }
 }
 function After(pattern1, pattern2) {
     this.pattern1 = pattern1;
     this.pattern2 = pattern2;
     this.toHTML = function() {
         return "<table><tr><th>After</th></tr><tr><td>pattern1</td><td>" + this.pattern1.toHTML() + "</td></tr><tr><td>pattern2</td><td>" + this.pattern2.toHTML() + "</td></tr></table>";
+    }
+    this.toString = function() {
+        return "After";
     }
 }
 
@@ -325,6 +394,9 @@ function QName(uri, localName) {
     this.localName = localName;
     this.toHTML = function() {
         return "<table><tr><th>QName</th></tr><tr><td>uri</td><td>" + this.uri + "</td></tr><tr><td>localName</td><td>" + this.localName + "</td></tr></table>";
+    }
+    this.toString = function() {
+        return "QName";
     }
 }
 
@@ -355,11 +427,18 @@ function ElementNode(qName, context, attributeNodes, childNodes) {
         }
         return string + "</td></tr></table>";
     }
+    this.toString = function() {
+        return "ElementNode";
+    }
 }
+
 function TextNode(string) {
     this.string = string;
     this.toHTML = function() {
         return "<table><tr><th>TextNode</th></tr><tr><td>string</td><td>" + this.string + "</td></tr></table>";
+    }
+    this.toString = function() {
+        return "TextNode";
     }
 }
 
@@ -368,5 +447,8 @@ function AttributeNode(qName, string) {
     this.string = string;
     this.toHTML = function() {
         return "<table><tr><th>AttributeNode</th></tr><tr><td>qName</td><td>" + this.qName.toHTML() + "</td></tr><tr><td>string</td><td>" + this.string + "</td></tr></table>";
+    }
+    this.toString = function() {
+        return "AttributeNode";
     }
 }
