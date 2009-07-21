@@ -421,7 +421,7 @@ SAXParser.prototype.endDocument_validating = function() {
 SAXParser.prototype.attributeDecl_validating = function(eName, aName, type, mode, value) {
     //adds the attribute as the first member of a group with old pattern as the second member
     var elementPattern = this.elements[eName];
-    var attributePattern = new Attribute(aName, type);
+    var attributePattern = new Attribute(new Name(null, aName), type);
     var group = new Group(attributePattern, elementPattern.pattern);
     elementPattern.pattern = group;
     if (this.parent && this.parent.declarationHandler) {
