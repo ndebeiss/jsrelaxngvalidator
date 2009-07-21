@@ -7,27 +7,27 @@ This software is a computer program whose purpose is to parse XML
 files respecting SAX2 specifications.
 
 This software is governed by the CeCILL license under French law and
-abiding by the rules of distribution of free software.  You can  use, 
+abiding by the rules of distribution of free software. You can use,
 modify and/ or redistribute the software under the terms of the CeCILL
 license as circulated by CEA, CNRS and INRIA at the following URL
-"http://www.cecill.info". 
+"http://www.cecill.info".
 
-As a counterpart to the access to the source code and  rights to copy,
+As a counterpart to the access to the source code and rights to copy,
 modify and redistribute granted by the license, users are provided only
-with a limited warranty  and the software's author,  the holder of the
-economic rights,  and the successive licensors  have only  limited
-liability. 
+with a limited warranty and the software's author, the holder of the
+economic rights, and the successive licensors have only limited
+liability.
 
 In this respect, the user's attention is drawn to the risks associated
-with loading,  using,  modifying and/or developing or reproducing the
+with loading, using, modifying and/or developing or reproducing the
 software by the user in light of its specific status of free software,
-that may mean  that it is complicated to manipulate,  and  that  also
-therefore means  that it is reserved for developers  and  experienced
+that may mean that it is complicated to manipulate, and that also
+therefore means that it is reserved for developers and experienced
 professionals having in-depth computer knowledge. Users are therefore
 encouraged to load and test the software's suitability as regards their
-requirements in conditions enabling the security of their systems and/or 
-data to be ensured and,  more generally, to use and operate it in the 
-same conditions as regards security. 
+requirements in conditions enabling the security of their systems and/or
+data to be ensured and, more generally, to use and operate it in the
+same conditions as regards security.
 
 The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
@@ -88,7 +88,7 @@ function _getValueByIndex(index) {
 function _getValueByQName(qName) {
     var i = this.attsArray.length;
     while (i--) {
-        if (this.attsArray[i].qName.equals(qName)) {
+        if (this.attsArray[i].qName === qName) {
             return this.attsArray[i].value;
         }
     }
@@ -155,6 +155,26 @@ AttributesImpl.prototype.getType = function(arg1, arg2) { // Should allow 1-2 ar
     // "For an enumerated attribute that is not a notation, the parser will report the type as 'NMTOKEN'."
     // If uri and localName passed, should return the "attribute type as a string, or null if the attribute is not in the list or if Namespace processing is not being performed."
     // If qName passed, should return the "attribute type as a string, or null if the attribute is not in the list or if qualified names are not available."
+    var index;
+    if (!arg2) {
+        if (arg1) {
+            //if it is an index, otherwise should return NaN
+            index = parseInt(arg1, 10);
+            //index may be 0
+            if (!index && index !== 0) {
+                //then it is qName
+                index = _getIndexByQName.call(this, arg1);
+            }
+        }
+    } else {
+        index = _getIndexByURI.call(this, arg1, arg2);
+    }
+    if (index || index === 0) {
+        var type = this.attsArray[index].type;
+        if (type) {
+            return type;
+        }
+    }
     return "CDATA";
 };
 AttributesImpl.prototype.getURI = function(index) {
@@ -179,10 +199,6 @@ AttributesImpl.prototype.addAttribute = function (uri, localName, qName, type, v
     }
     this.attsArray.push(new Sax_Attribute(uri, prefix, localName, qName, type, value));
 };
-//in order not to parse qname several times, add that convenience method
-AttributesImpl.prototype.addAttribute = function (uri, prefix, localName, qName, type, value) {
-    this.attsArray.push(new Sax_Attribute(uri, prefix, localName, qName, type, value));
-};
 AttributesImpl.prototype.clear = function () {
     this.attsArray = [];
 };
@@ -199,7 +215,7 @@ AttributesImpl.prototype.setLocalName = function (index, localName) {
 AttributesImpl.prototype.setQName = function (index, qName) {
     var att = this.attsArray[index];
     att.qName = qName;
-    if (name.indexOf(":") !== -1) {
+    if (qName.indexOf(":") !== -1) {
         var splitResult = qName.split(":");
         att.prefix = splitResult[0];
         att.localName = splitResult[1];
@@ -217,7 +233,11 @@ AttributesImpl.prototype.setURI = function (index, uri) {
 AttributesImpl.prototype.setValue = function (index, value) {
     this.attsArray[index].value = value;
 };
-
+// CUSTOM CONVENIENCE METHODS
+//in order not to parse qname several times
+AttributesImpl.prototype.addPrefixedAttribute = function (uri, prefix, localName, qName, type, value) {
+    this.attsArray.push(new Sax_Attribute(uri, prefix, localName, qName, type, value));
+};
 
 /*
 Attributes2Impl()
