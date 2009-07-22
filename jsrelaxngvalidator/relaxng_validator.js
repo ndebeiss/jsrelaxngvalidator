@@ -373,7 +373,6 @@ function RelaxNGValidator(result, sax_events, relaxng, debug) {
         }
         if (this.resultPattern instanceof NotAllowed) {
             this.fireRelaxngError("document not valid : " + this.resultPattern.toHTML() + "<br/>");
-            throw new SAXException(this.saxParser.char, this.saxParser.index, "document not valid");
         } else {
             this.result.innerHTML += "<h4>That XML is valid</h4>";
         }

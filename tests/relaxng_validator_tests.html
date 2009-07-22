@@ -1,7 +1,6 @@
 <html>
   <head>
     <script type="text/javascript" src="../jsunit/app/jsUnitCore.js"></script>
-    <script type="text/javascript" src="../jsrelaxngvalidator/jssaxparser-1.1/AttributesImpl.js"></script>
     <script type="text/javascript" src="../jsrelaxngvalidator/jssaxparser-1.1/sax.js"></script>
 	<script type="text/javascript" src="../jsrelaxngvalidator/dom_utils.js"></script>
 	<script type="text/javascript" src="../jsrelaxngvalidator/applyXslt.js"></script>
@@ -84,9 +83,14 @@
         var validation_result = document.getElementById('validation_result');
         var sax_events = document.getElementById('sax_events');        
         var relaxNGValidator = new RelaxNGValidator(validation_result, sax_events, relaxng);
-        var saxParser = new SAXParser(relaxNGValidator);
+        var saxParser = XMLReaderFactory.createXMLReader();
+        saxParser.setHandler(relaxNGValidator);
         relaxNGValidator.setSaxParser(saxParser);
-        saxParser.parseString(xml);
+        try {
+            saxParser.parseString(xml);
+        } catch (e) { 
+            //if not valid a SAXException has been thrown
+        }
         return relaxNGValidator.resultPattern;
     }
     
