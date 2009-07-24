@@ -118,7 +118,6 @@ function RelaxNGValidator(result, sax_events, relaxng, debug) {
 
     */
     this.startDocument = function() {
-        this.sax_events.innerHTML += "startDocument<br/>";
         var baseURI = "";
         if (this.rootNode.baseURI) {
             baseURI = this.rootNode.baseURI;
@@ -134,10 +133,7 @@ function RelaxNGValidator(result, sax_events, relaxng, debug) {
         }
     };
     
-    this.startElement = function(namespaceURI, localName, qName, atts) {
-        this.sax_events.innerHTML += "startElement [" + namespaceURI + "] [" + localName + "] [" + qName + "]<br/>";
-        this.displayAtts(atts);
-        
+    this.startElement = function(namespaceURI, localName, qName, atts) {        
         var attributeNodes = new Array();
         for (var i = 0 ; i < atts.getLength() ; i++) {
             attributeNodes.push(new AttributeNode(new QName(atts.getURI(i), atts.getLocalName(i)), atts.getValue(i)));
@@ -326,7 +322,6 @@ function RelaxNGValidator(result, sax_events, relaxng, debug) {
     validates again the tree in order to detect missing element
     */
     this.endElement = function(namespaceURI,localName,qName) {
-        this.sax_events.innerHTML += "endElement [" + namespaceURI + "] [" + localName + "] [" + qName + "]<br/>";
         if (this.currentElementNode.parentNode) {
             this.currentElementNode = this.currentElementNode.parentNode;
         }
@@ -335,35 +330,25 @@ function RelaxNGValidator(result, sax_events, relaxng, debug) {
     
     
     this.startPrefixMapping = function(prefix, uri) {
-        this.sax_events.innerHTML += "startPrefixMapping [" + prefix + "] [" + uri + "]<br/>";
         this.instanceContext.map[prefix] = uri;
     };
 
     this.endPrefixMapping = function(prefix) {
-        this.sax_events.innerHTML += "endPrefixMapping [" + prefix + "]<br/>";
         delete this.instanceContext.map[prefix];
     };
 
-    this.processingInstruction = function(target, data) {
-        this.sax_events.innerHTML += "processingInstruction [" + target + "] [" + data + "]<br/>";
-    };
+    this.processingInstruction = function(target, data) {};
 
-    this.ignorableWhitespace = function(ch, start, length) {
-        this.sax_events.innerHTML += "ignorableWhitespace [" + ch + "] [" + start + "] [" + length + "]<br/>";
-    };
+    this.ignorableWhitespace = function(ch, start, length) {};
 
     this.characters = function(ch, start, length) {
-        this.sax_events.innerHTML += "characters [" + ch + "] [" + start + "] [" + length + "]<br/>";
         var newText = new TextNode(ch);
         this.currentElementNode.childNodes.push(newText);
     };
 
-    this.skippedEntity = function(name) {
-        this.sax_events.innerHTML += "skippedEntity [" + name + "]<br/>";
-    };
+    this.skippedEntity = function(name) {};
 
     this.endDocument = function() {
-        this.sax_events.innerHTML += "endDocument<br/>";
         if (this.debug) {
             this.debugMsg("validating childNode =<br/>" + this.childNode.toHTML());
         }
@@ -378,19 +363,9 @@ function RelaxNGValidator(result, sax_events, relaxng, debug) {
         }
     };
 
-    this.setDocumentLocator = function(locator) {
-        this.sax_events.innerHTML += "setDocumentLocator [" + locator + "]<br/>";
-    };
-
-    this.displayAtts = function(atts) {
-        for (var i = 0 ; i < atts.getLength() ; i++) {
-            this.sax_events.innerHTML += "attribute [" + atts.getURI(i) + "] [" + atts.getLocalName(i) + "] [" + atts.getValue(i) + "]<br/>";
-        }
-    };
+    this.setDocumentLocator = function(locator) {};
     
-    this.debugMsg = function(message) {
-        this.sax_events.innerHTML += "debug : " + message + "<br/>";
-    };
+    this.debugMsg = function(message) {};
 
     this.warning = function(saxException) {
         this.relaxngError(saxException.char, saxException.index, saxException.message);

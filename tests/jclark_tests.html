@@ -1,0 +1,86 @@
+<html>
+  <head>
+    <script type="text/javascript" src="../jsunit/app/jsUnitCore.js"></script>
+    <script type="text/javascript" src="../jsrelaxngvalidator/jssaxparser-1.1/sax.js"></script>
+	<script type="text/javascript" src="../jsrelaxngvalidator/dom_utils.js"></script>
+	<script type="text/javascript" src="../jsrelaxngvalidator/applyXslt.js"></script>
+	<script type="text/javascript" src="../jsrelaxngvalidator/datatype_library.js"></script>
+	<script type="text/javascript" src="../jsrelaxngvalidator/relaxng_validator.js"></script>
+	<script type="text/javascript" src="../jsrelaxngvalidator/validator_functions.js"></script>
+	<script type="text/javascript" src="../jsrelaxngvalidator/validator_objects.js"></script>
+	<script type="text/javascript" src="manageWhiteSpace.js"></script>
+    <script type="text/javascript">
+    
+    var validation_result;
+    var sax_events;
+    
+    function setUp() {
+        validation_result = document.getElementById('validation_result');
+        sax_events = document.getElementById('sax_events');  
+    }
+    
+    function testValidateSpecTest() {
+        var relaxng = createDocumentFromText(loadFile("jclark_testSuite/testSuite.rng"));
+        var pattern = validate(loadFile("jclark_testSuite/spectest.xml"), relaxng);
+        assertTrue(pattern.toHTML(), pattern instanceof Empty);
+    }
+    
+    function testCorrect() {
+        var spectest = createDocumentFromText(loadFile("jclark_testSuite/spectest.xml"));
+        var correctSchemas = spectest.getElementsByTagName("correct");
+        for (var i = 0 ; i < correctSchemas.length ; i++) {
+            var relaxng;
+            var rootNode = getFirstChildElement(correctSchemas.item(i));
+            var schemaAsText = innerXML(rootNode);
+            if (rootNode.tagName !== "grammar") {
+                relaxng = createDocumentFromText("<grammar xmlns=\"http://relaxng.org/ns/structure/1.0\" datatypeLibrary=\"http://www.w3.org/2001/XMLSchema-datatypes\"><start><ref name=\"content\"/></start><define name=\"content\">" + schemaAsText + "</define>");
+            } else {
+                relaxng = createDocumentFromText(schemaAsText);
+            }
+            for (var next = getNextSiblingElement(rootNode) ; next ; next = getNextSiblingElement(next)) {
+                var xml = getFirstChildElement(next);
+                var pattern = validateString(innerXML(xml), relaxng);
+                if (next.tagName === "valid") {
+                    assertTrue(pattern.toHTML(), pattern instanceof Empty);
+                } else if (next.tagName === "invalid") {
+                    assertTrue(pattern.toHTML(), pattern instanceof NotAllowed);
+                }
+            }
+        }
+    }
+    
+    function validate(xml, relaxng) {
+        var relaxNGValidator = new RelaxNGValidator(validation_result, sax_events, relaxng);
+        var saxParser = XMLReaderFactory.createXMLReader();
+        saxParser.setContentHandler(relaxNGValidator);
+        saxParser.setErrorHandler(relaxNGValidator);
+        relaxNGValidator.setSaxParser(saxParser);
+        try {
+            saxParser.parseString(xml);
+        } finally {
+            return relaxNGValidator.resultPattern;
+        }
+    }
+    
+    function runAllTests () {
+        setUp();
+        testValidateSpecTest();
+        setUp();
+        testCorrect();
+        
+        alert('done!');
+    }
+    
+    // Brett added to be able to show something in console when error is thrown
+    JsUnitException.prototype.toString = function () {
+        return this.jsUnitMessage;
+    };
+
+    </script>
+  </head>
+  <body onload="runAllTests()">
+    This is a Test Page for relaxng_validator.js
+		<div id="validation_result"></div>
+		<div id="sax_events"></div>
+  </body>
+</html>

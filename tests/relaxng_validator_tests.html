@@ -84,7 +84,8 @@
         var sax_events = document.getElementById('sax_events');        
         var relaxNGValidator = new RelaxNGValidator(validation_result, sax_events, relaxng);
         var saxParser = XMLReaderFactory.createXMLReader();
-        saxParser.setHandler(relaxNGValidator);
+        saxParser.setContentHandler(relaxNGValidator);
+        saxParser.setErrorHandler(relaxNGValidator);
         relaxNGValidator.setSaxParser(saxParser);
         try {
             saxParser.parseString(xml);
