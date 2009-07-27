@@ -108,282 +108,355 @@ function RelaxNGValidator(result, sax_events, relaxng, debug) {
     
     this.rngUri = "http://relaxng.org/ns/structure/1.0";
     this.aUri = "http://relaxng.org/ns/compatibility/annotations/1.0";
-    
-    this.setSaxParser = function(saxParser) {
-        this.saxParser = saxParser;
-    };
+}
+
+RelaxNGValidator.prototype.setSaxParser = function(saxParser) {
+    this.saxParser = saxParser;
+};
     
     /*
     grammar	??::=??	<grammar> <start> top </start> define* </grammar>
 
     */
-    this.startDocument = function() {
-        var baseURI = "";
-        if (this.rootNode.baseURI) {
-            baseURI = this.rootNode.baseURI;
-        }
-        this.context = new Context(baseURI, new Array());
-        this.defines = this.rootNode.getElementsByTagNameNS(this.rngUri, "define");
-        this.instanceContext = new Context(baseURI, new Array());
-        var start = this.rootNode.getElementsByTagNameNS(this.rngUri, "start").item(0);		
-        this.pattern = this.getPattern(getFirstChildElement(start), this.context);
-        
-        if (this.debug) {
-            this.debugMsg("parsing the schema resulted in that pattern = <br/>" + this.pattern.toHTML());
-        }
-    };
+RelaxNGValidator.prototype.startDocument = function() {
+    var baseURI = "";
+    if (this.rootNode.baseURI) {
+        baseURI = this.rootNode.baseURI;
+    }
+    this.context = new Context(baseURI, new Array());
+    this.defines = this.rootNode.getElementsByTagNameNS(this.rngUri, "define");
+    this.instanceContext = new Context(baseURI, new Array());
+    var start = this.rootNode.getElementsByTagNameNS(this.rngUri, "start").item(0);		
+    this.pattern = this.getPattern(getFirstChildElement(start), this.context);
     
-    this.startElement = function(namespaceURI, localName, qName, atts) {        
-        var attributeNodes = new Array();
-        for (var i = 0 ; i < atts.getLength() ; i++) {
-            attributeNodes.push(new AttributeNode(new QName(atts.getURI(i), atts.getLocalName(i)), atts.getValue(i)));
-        }
-        var newElement = new ElementNode(new QName(namespaceURI, localName), this.instanceContext, attributeNodes, new Array());
-        //this.childNode must be an ElementNode
-        if (!this.childNode) {
-            this.childNode = this.currentElementNode = newElement;
-        } else {
-            this.currentElementNode.childNodes.push(newElement);
-            newElement.setParentNode(this.currentElementNode);
-            this.currentElementNode = newElement;
-        }
-    };
+    if (this.debug) {
+        this.debugMsg("parsing the schema resulted in that pattern = <br/>" + this.pattern.toHTML());
+    }
+};
 
-    /*
-    data Pattern = Empty
-                   | NotAllowed
-                   | Text
-                   | Choice Pattern Pattern
-                   | Interleave Pattern Pattern
-                   | Group Pattern Pattern
-                   | OneOrMore Pattern
-                   | List Pattern
-                   | Data Datatype ParamList
-                   | DataExcept Datatype ParamList Pattern
-                   | Value Datatype String Context
-                   | Attribute NameClass Pattern
-                   | Element NameClass Pattern
-                   | After Pattern Pattern
-    */
-    this.getPattern = function(node, context) {
-        var newContext = this.addNamespaces(node, context);
-        if (node.nodeName == 'rng:empty') {
-            return new Empty();
-        } else if (node.nodeName == 'rng:notAllowed') {
-            return new NotAllowed();
-        } else if (node.nodeName == 'rng:text') {
-            return new Text();
-        } else if (node.nodeName == 'rng:choice') {
-            var firstElement = getFirstChildElement(node);
-            var secondElement = getNextSiblingElement(firstElement);
-            return new Choice(this.getPattern(firstElement, context),this.getPattern(secondElement, context));
-        } else if (node.nodeName == 'rng:interleave') {
-            var firstElement = getFirstChildElement(node);
-            var secondElement = getNextSiblingElement(firstElement);
-            return new Interleave(this.getPattern(firstElement, context),this.getPattern(secondElement, context));
-        } else if (node.nodeName == 'rng:group') {
-            var firstElement = getFirstChildElement(node);
-            var secondElement = getNextSiblingElement(firstElement);
-            return new Group(this.getPattern(firstElement, context),this.getPattern(secondElement, context));
-        } else if (node.nodeName == 'rng:oneOrMore') {
-            var firstElement = getFirstChildElement(node);
-            return new OneOrMore(this.getPattern(firstElement, context));
-        } else if (node.nodeName == 'rng:list') {
-            var firstElement = getFirstChildElement(node);
-            return new List(this.getPattern(firstElement, context));
-        } else if (node.nodeName == 'rng:data') {
-            return this.getData(node);
-        } else if (node.nodeName == 'rng:value') {
-            return new Value(this.getDatatype(node), textContent(node), newContext);
-        } else if (node.nodeName == 'rng:attribute') {
-            var firstElement = getFirstChildElement(node);
-            var secondElement = getNextSiblingElement(firstElement);
-            return new Attribute(this.getNameClass(firstElement), this.getPattern(secondElement, context));
-        } else if (node.nodeName == 'rng:element') {
-            var firstElement = getFirstChildElement(node);
-            var secondElement = getNextSiblingElement(firstElement);
-            return new Element(this.getNameClass(firstElement), this.getPattern(secondElement, context));
-        } else if (node.nodeName == 'rng:ref') {
-            var ncName = node.getAttribute("name");
-            var define = this.getDefine(ncName);
-            return this.getPattern(define, new Context(context.uri, new Array()));
-        } else if (node.nodeName == 'rng:define') {
-            var firstElement = getFirstChildElement(node);
-            return this.getPattern(firstElement, context);
+RelaxNGValidator.prototype.startElement = function(namespaceURI, localName, qName, atts) {        
+    var attributeNodes = new Array();
+    for (var i = 0 ; i < atts.getLength() ; i++) {
+        attributeNodes.push(new AttributeNode(new QName(atts.getURI(i), atts.getLocalName(i)), atts.getValue(i)));
+    }
+    var newElement = new ElementNode(new QName(namespaceURI, localName), this.instanceContext, attributeNodes, new Array());
+    //this.childNode must be an ElementNode
+    if (!this.childNode) {
+        this.childNode = this.currentElementNode = newElement;
+    } else {
+        this.currentElementNode.childNodes.push(newElement);
+        newElement.setParentNode(this.currentElementNode);
+        this.currentElementNode = newElement;
+    }
+};
+
+/*
+data Pattern = Empty
+               | NotAllowed
+               | Text
+               | Choice Pattern Pattern
+               | Interleave Pattern Pattern
+               | Group Pattern Pattern
+               | OneOrMore Pattern
+               | List Pattern
+               | Data Datatype ParamList
+               | DataExcept Datatype ParamList Pattern
+               | Value Datatype String Context
+               | Attribute NameClass Pattern
+               | Element NameClass Pattern
+               | After Pattern Pattern
+*/
+RelaxNGValidator.prototype.getPattern = function(node, context) {
+    var newContext = this.addNamespaces(node, context);
+    var name = node.nodeName;
+    var prefix = "";
+    if (name.indexOf(":") !== -1) {
+        prefix = name.split(":")[0];
+    }
+    //issue with namespaces:: xslt axis under firefox
+    if (lookupNamespaceURI(node, prefix) === null || lookupNamespaceURI(node, prefix) === this.rngUri) {
+        switch(node.localName) {
+            case 'empty':
+                return new Empty();
+            case 'notAllowed':
+                return new NotAllowed();
+            case 'text':
+                return new Text();
+            case 'choice':
+                var firstElement = getFirstChildElement(node);
+                var secondElement = getNextSiblingElement(firstElement);
+                return new Choice(this.getPattern(firstElement, newContext), this.getPattern(secondElement, newContext));
+            case 'interleave':
+                var firstElement = getFirstChildElement(node);
+                var secondElement = getNextSiblingElement(firstElement);
+                return new Interleave(this.getPattern(firstElement, newContext), this.getPattern(secondElement, newContext));
+            case 'group':
+                var firstElement = getFirstChildElement(node);
+                var secondElement = getNextSiblingElement(firstElement);
+                return new Group(this.getPattern(firstElement, newContext), this.getPattern(secondElement, newContext));
+            case 'oneOrMore':
+                var firstElement = getFirstChildElement(node);
+                return new OneOrMore(this.getPattern(firstElement, newContext));
+            case 'list':
+                var firstElement = getFirstChildElement(node);
+                return new List(this.getPattern(firstElement, newContext));
+            case 'data':
+                return this.getData(node, newContext);
+            case 'value':
+                return new Value(this.getDatatype(node), textContent(node), newContext);
+            case 'attribute':
+                var firstElement = getFirstChildElement(node);
+                var secondElement = getNextSiblingElement(firstElement);
+                return new Attribute(this.getNameClass(firstElement, newContext), this.getPattern(secondElement, newContext));
+            case 'element':
+                var firstElement = getFirstChildElement(node);
+                var secondElement = getNextSiblingElement(firstElement);
+                return new Element(this.getNameClass(firstElement, newContext), this.getPattern(secondElement, newContext));
+            case 'ref':
+                var ncName = node.getAttribute("name");
+                var define = this.getDefine(ncName);
+                return this.getPattern(define, new Context(newContext.uri, new Array()));
+            case 'define':
+                var firstElement = getFirstChildElement(node);
+                return this.getPattern(firstElement, newContext);
+            default:
+                this.fireRelaxngError("invalid pattern found in relaxng : " + node.localName + "<br/>");
+                return;
         }
-    };
-    
-    this.addNamespaces = function(node, context) {
-        var contextCloned = new Context(context.uri, cloneArray(context.map));
-        var atts = node.attributes;
-        for (var i = 0; atts && i < atts.length; i++) {
-            var att = atts[i];
-            if (att.nodeName.match('xmlns')) {
-                //if it is xmlns only
-                var prefix = att.nodeName.replace(/^xmlns$/,"");
-                contextCloned.map[prefix] = att.value;
+    }
+};
+
+RelaxNGValidator.prototype.addNamespaces = function(node, context) {
+    var contextCloned = new Context(context.uri, cloneArray(context.map));
+    var atts = node.attributes;
+    for (var i = 0; atts && i < atts.length; i++) {
+        var att = atts[i];
+        if (att.nodeName.match('xmlns')) {
+            //if it is xmlns only
+            var prefix = att.nodeName.replace(/^xmlns$/,"");
+            contextCloned.map[prefix] = att.value;
+        }
+    }
+    return contextCloned;
+};
+
+
+/*
+      | Data Datatype ParamList
+            | DataExcept Datatype ParamList Pattern
+*/
+RelaxNGValidator.prototype.getData = function(node, context) {
+    var datatype = this.getDatatype(node);
+    var paramList = new Array();
+    var except;
+    for (var childNode = getFirstChildElement(node) ; childNode ; childNode = getNextSiblingElement(childNode)) {
+        //param	??::=??	<param name="NCName"> string </param>
+        if (childNode.localName === 'param') {
+            var name = childNode.getAttribute('name');
+            //actually that param name should not have any prefix, but if not respected
+            var index = name.indexOf(":");
+            if (index !== -1) {
+                name = name.substr(index + 1);
             }
+            var string = textContent(childNode);
+            paramList.push(new Param(name,string));
+        //exceptPattern	??::=??	<except> pattern </except>
+        } else if (childNode.localName === 'except') {
+            except = this.getPattern(getFirstChildElement(childNode), context);
         }
-        return contextCloned;
-    };
+    }
+    if (except) {
+        return new DataExcept(datatype, paramList, except);
+    } else {
+        return new Data(datatype, paramList);
+    }
+};
+
+RelaxNGValidator.prototype.getDatatype = function(node) {
+    var datatypeLibrary = node.getAttribute('datatypeLibrary');
+    var type = node.getAttribute('type');
+    return new Datatype(datatypeLibrary, type);
+};
+
+/*
+data NameClass = AnyName
+                 | AnyNameExcept NameClass
+                 | Name Uri LocalName
+                 | NsName Uri
+                 | NsNameExcept Uri NameClass
+                 | NameClassChoice NameClass NameClass
+*/	
+RelaxNGValidator.prototype.getNameClass = function(node, context) {
+    if (node.localName === 'anyName') {
+        var firstElement = getFirstChildElement(node);
+        if (firstElement && firstElement.localName === 'except') {
+            return new AnyNameExcept(this.getPattern(getFirstChildElement(firstElement), context));
+        } else {
+            return new AnyName();
+        }
+    }  else if (node.localName === 'name') {
+        var uri = node.getAttribute('ns');
+        //not sure it is possible to modify the xsl in order to have null in uri instead of ""
+        // so for now empty uri is considered as null (no namespace)
+        if (!uri) {
+            uri = null;
+        }
+        var localName = textContent(node);
+        return new Name(uri, localName);
+    } else if (node.localName === 'nsName') {
+        var uri = node.getAttribute('ns');
+        var firstElement = getFirstChildElement(node);
+        if (firstElement && firstElement.localName === 'except') {
+            return new NsNameExcept(uri, this.getPattern(getFirstChildElement(firstElement), context));
+        } else {
+            return new NsName(uri);
+        }
+    } else if (node.localName === 'choice') {
+        var firstElement = getFirstChildElement(node);
+        var secondElement = getNextSiblingElement(firstElement);
+        return new NameClassChoice(this.getNameClass(firstElement, context), this.getNameClass(secondElement, context));
+    }
+};
+
+
+
+/*
+define	  ::=  	<define name="NCName" [combine="method"]> pattern+ </define>
+*/
+RelaxNGValidator.prototype.getDefine = function(ncName) {
+    for (var i = 0 ; i < this.defines.length ; i ++) {
+        if (this.defines[i].getAttribute("name") == ncName) {
+            return this.defines[i];
+        }
+    }
+};
+
+/*
+validates again the tree in order to detect missing element
+*/
+RelaxNGValidator.prototype.endElement = function(namespaceURI,localName,qName) {
+    if (this.currentElementNode.parentNode) {
+        this.currentElementNode = this.currentElementNode.parentNode;
+    }
     
-    
-    /*
-          | Data Datatype ParamList
-                | DataExcept Datatype ParamList Pattern
-    */
-    this.getData = function(node) {
-        var datatype = this.getDatatype(node);
-        var paramList = new Array();
-        var except;
-        for (var childNode = getFirstChildElement(node) ; childNode ; childNode = getNextSiblingElement(childNode)) {
-            //param	??::=??	<param name="NCName"> string </param>
-            if (childNode.nodeName == 'rng:param') {
-                var name = childNode.getAttribute('name');
-                //actually that param name should not have any prefix, but if not respected
-                var index = name.indexOf(":");
-                if (index !== -1) {
-                    name = name.substr(index + 1);
+};
+
+
+RelaxNGValidator.prototype.startPrefixMapping = function(prefix, uri) {
+    this.instanceContext.map[prefix] = uri;
+};
+
+RelaxNGValidator.prototype.endPrefixMapping = function(prefix) {
+    delete this.instanceContext.map[prefix];
+};
+
+RelaxNGValidator.prototype.processingInstruction = function(target, data) {};
+
+RelaxNGValidator.prototype.ignorableWhitespace = function(ch, start, length) {};
+
+RelaxNGValidator.prototype.characters = function(ch, start, length) {
+    var newText = new TextNode(ch);
+    this.currentElementNode.childNodes.push(newText);
+};
+
+RelaxNGValidator.prototype.skippedEntity = function(name) {};
+
+RelaxNGValidator.prototype.endDocument = function() {
+    if (this.debug) {
+        this.debugMsg("validating childNode =<br/>" + this.childNode.toHTML());
+    }
+    this.resultPattern = this.validatorFunctions.childDeriv(this.context, this.pattern, this.childNode);
+    if (this.debug) {
+        this.debugMsg("result pattern of that validation is =<br/>" + this.resultPattern.toHTML());
+    }
+    if (this.resultPattern instanceof NotAllowed) {
+        this.fireRelaxngError("document not valid : " + this.resultPattern.toHTML() + "<br/>");
+    } else {
+        this.result.innerHTML += "<h4>That XML is valid</h4>";
+    }
+};
+
+RelaxNGValidator.prototype.setDocumentLocator = function(locator) {};
+
+RelaxNGValidator.prototype.debugMsg = function(message) {};
+
+RelaxNGValidator.prototype.warning = function(saxException) {
+    this.relaxngError(saxException.char, saxException.index, saxException.message);
+};
+RelaxNGValidator.prototype.error = function(saxException) {
+    this.relaxngError(saxException.char, saxException.index, saxException.message);
+};
+RelaxNGValidator.prototype.fatalError = function(saxException) {
+    this.relaxngError(saxException.char, saxException.index, saxException.message);
+};
+
+RelaxNGValidator.prototype.fireRelaxngError = function(message) {
+    this.relaxngError(this.saxParser.char, this.saxParser.index, message);
+};
+
+RelaxNGValidator.prototype.relaxngError = function(char, index, message) {
+    this.result.innerHTML += "validation error at char : [" + char + "] at index : " + index + "<br/>";
+    this.result.innerHTML += "message is : [" + message + "]<br/>";
+};
+
+/* comes from https://developer.mozilla.org/En/Code_snippets/LookupNamespaceURI */
+function lookupNamespaceURI (node, prefix) { // adapted directly from http://www.w3.org/TR/DOM-Level-3-Core/namespaces-algorithms.html#lookupNamespaceURIAlgo
+    if (node.lookupNamespaceURI) {
+        return node.lookupNamespaceURI(prefix);
+    }
+    var xmlnsPattern = /^xmlns:(.*)$/;
+    switch (node.nodeType) {
+        case 1: // ELEMENT_NODE (could also just test for Node.ELEMENT_NODE, etc., if supported in all browsers)
+            if (node.namespaceURI !== null && node.prefix === prefix)  {
+            // Note: prefix could be "null" in this case we are looking for default namespace
+                return node.namespaceURI;
+            }
+            if (node.attributes.length) {
+                for (var i=0; i < node.attributes.length; i++) {
+                    var att = node.attributes[i];
+                    if (xmlnsPattern.test(att.name) && xmlnsPattern.exec(att.name)[1] === prefix) {
+                        if (att.value) {
+                            return att.value;
+                        }
+                        return null; // unknown
+                    }
+                    else if (att.name === 'xmlns' && prefix === null) {
+                    // default namespace
+                        if (att.value) {
+                            return att.value;
+                        }
+                        return null; // unknown
+                    }
                 }
-                var string = textContent(childNode);
-                paramList.push(new Param(name,string));
-            //exceptPattern	??::=??	<except> pattern </except>
-            } else if (childNode.nodeName == 'rng:except') {
-                except = this.getPattern(getFirstChildElement(childNode));
             }
-        }
-        if (except) {
-            return new DataExcept(datatype, paramList, except);
-        } else {
-            return new Data(datatype, paramList);
-        }
-    };
-    
-    this.getDatatype = function(node) {
-        var datatypeLibrary = node.getAttribute('datatypeLibrary');
-        var type = node.getAttribute('type');
-        return new Datatype(datatypeLibrary, type);
-    };
-    
-    /*
-    data NameClass = AnyName
-                     | AnyNameExcept NameClass
-                     | Name Uri LocalName
-                     | NsName Uri
-                     | NsNameExcept Uri NameClass
-                     | NameClassChoice NameClass NameClass
-    */	
-    this.getNameClass = function(node) {
-        if (node.nodeName == 'rng:anyName') {
-            var firstElement = getFirstChildElement(node);
-            if (firstElement && firstElement.nodeName == 'rng:except') {
-                return new AnyNameExcept(this.getPattern(getFirstChildElement(firstElement)));
-            } else {
-                return new AnyName();
+            if (node.parentNode) {
+            // EntityReferences may have to be skipped to get to it
+                return lookupNamespaceURI(node.parentNode, prefix);
             }
-        }  else if (node.nodeName == 'rng:name') {
-            var uri = node.getAttribute('ns');
-            //not sure it is possible to modify the xsl in order to have null in uri instead of ""
-            // so for now empty uri is considered as null (no namespace)
-            if (!uri) {
-                uri = null;
+            return null;
+        case 9: // DOCUMENT_NODE
+            return lookupNamespaceURI(node.documentElement, prefix);
+        case 6: // ENTITY_NODE
+        case 12: // NOTATION_NODE
+        case 10: // DOCUMENT_TYPE_NODE
+        case 11: // DOCUMENT_FRAGMENT_NODE
+            return null; // unknown
+        case 2: // ATTRIBUTE_NODE
+            if (node.ownerElement) {
+                return lookupNamespaceURI(node.ownerElement, prefix);
             }
-            var localName = textContent(node);
-            return new Name(uri, localName);
-        } else if (node.nodeName == 'rng:nsName') {
-            var uri = node.getAttribute('ns');
-            var firstElement = getFirstChildElement(node);
-            if (firstElement && firstElement.nodeName == 'rng:except') {
-                return new NsNameExcept(uri, this.getPattern(getFirstChildElement(firstElement)));
-            } else {
-                return new NsName(uri);
+            else {
+                return null; // unknown
             }
-        } else if (node.nodeName == 'rng:choice') {
-            var firstElement = getFirstChildElement(node);
-            var secondElement = getNextSiblingElement(firstElement);
-            return new NameClassChoice(this.getNameClass(firstElement), this.getNameClass(secondElement));
-        }
-    };
-    
-    
-    
-    /*
-    define	  ::=  	<define name="NCName" [combine="method"]> pattern+ </define>
-    */
-    this.getDefine = function(ncName) {
-        for (var i = 0 ; i < this.defines.length ; i ++) {
-            if (this.defines[i].getAttribute("name") == ncName) {
-                return this.defines[i];
+        default:
+            // TEXT_NODE (3), CDATA_SECTION_NODE (4), ENTITY_REFERENCE_NODE (5),
+            // PROCESSING_INSTRUCTION_NODE (7), COMMENT_NODE (8)
+            if (node.parentNode) {
+            // EntityReferences may have to be skipped to get to it
+                return lookupNamespaceURI(node.parentNode, prefix);
             }
-        }
-    };
-    
-    /*
-    validates again the tree in order to detect missing element
-    */
-    this.endElement = function(namespaceURI,localName,qName) {
-        if (this.currentElementNode.parentNode) {
-            this.currentElementNode = this.currentElementNode.parentNode;
-        }
-        
-    };
-    
-    
-    this.startPrefixMapping = function(prefix, uri) {
-        this.instanceContext.map[prefix] = uri;
-    };
-
-    this.endPrefixMapping = function(prefix) {
-        delete this.instanceContext.map[prefix];
-    };
-
-    this.processingInstruction = function(target, data) {};
-
-    this.ignorableWhitespace = function(ch, start, length) {};
-
-    this.characters = function(ch, start, length) {
-        var newText = new TextNode(ch);
-        this.currentElementNode.childNodes.push(newText);
-    };
-
-    this.skippedEntity = function(name) {};
-
-    this.endDocument = function() {
-        if (this.debug) {
-            this.debugMsg("validating childNode =<br/>" + this.childNode.toHTML());
-        }
-        this.resultPattern = this.validatorFunctions.childDeriv(this.context, this.pattern, this.childNode);
-        if (this.debug) {
-            this.debugMsg("result pattern of that validation is =<br/>" + this.resultPattern.toHTML());
-        }
-        if (this.resultPattern instanceof NotAllowed) {
-            this.fireRelaxngError("document not valid : " + this.resultPattern.toHTML() + "<br/>");
-        } else {
-            this.result.innerHTML += "<h4>That XML is valid</h4>";
-        }
-    };
-
-    this.setDocumentLocator = function(locator) {};
-    
-    this.debugMsg = function(message) {};
-
-    this.warning = function(saxException) {
-        this.relaxngError(saxException.char, saxException.index, saxException.message);
-    };
-    this.error = function(saxException) {
-        this.relaxngError(saxException.char, saxException.index, saxException.message);
-    };
-    this.fatalError = function(saxException) {
-        this.relaxngError(saxException.char, saxException.index, saxException.message);
-    };
-    
-    this.fireRelaxngError = function(message) {
-        this.relaxngError(this.saxParser.char, this.saxParser.index, message);
-    };
-    
-    this.relaxngError = function(char, index, message) {
-        this.result.innerHTML += "validation error at char : [" + char + "] at index : " + index + "<br/>";
-        this.result.innerHTML += "message is : [" + message + "]<br/>";
-    };
-    
+            else {
+                return null; // unknown
+            }
+    }
 }

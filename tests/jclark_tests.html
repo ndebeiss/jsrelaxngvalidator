@@ -29,21 +29,38 @@
         var spectest = createDocumentFromText(loadFile("jclark_testSuite/spectest.xml"));
         var correctSchemas = spectest.getElementsByTagName("correct");
         for (var i = 0 ; i < correctSchemas.length ; i++) {
+            var correctSchema = correctSchemas.item(i);
+            var testSuite;
+            var parent = correctSchema;
+            while (!testSuite && parent && parent.tagName) {
+                parent = parent.parentNode;
+                if (parent.tagName.toLowerCase() === "testsuite") {
+                    testSuite = parent;
+                }
+            }
             var relaxng;
-            var rootNode = getFirstChildElement(correctSchemas.item(i));
+            var rootNode = getFirstChildElement(correctSchema);
             var schemaAsText = innerXML(rootNode);
             if (rootNode.tagName !== "grammar") {
-                relaxng = createDocumentFromText("<grammar xmlns=\"http://relaxng.org/ns/structure/1.0\" datatypeLibrary=\"http://www.w3.org/2001/XMLSchema-datatypes\"><start><ref name=\"content\"/></start><define name=\"content\">" + schemaAsText + "</define>");
+                relaxng = createDocumentFromText("<grammar xmlns=\"http://relaxng.org/ns/structure/1.0\" datatypeLibrary=\"http://www.w3.org/2001/XMLSchema-datatypes\"><start><ref name=\"content\"/></start><define name=\"content\">" + schemaAsText + "</define></grammar>");
             } else {
                 relaxng = createDocumentFromText(schemaAsText);
             }
-            for (var next = getNextSiblingElement(rootNode) ; next ; next = getNextSiblingElement(next)) {
+            for (var next = getNextSiblingElement(correctSchema) ; next ; next = getNextSiblingElement(next)) {
                 var xml = getFirstChildElement(next);
-                var pattern = validateString(innerXML(xml), relaxng);
+                var pattern = validate(innerXML(xml), relaxng);
                 if (next.tagName === "valid") {
-                    assertTrue(pattern.toHTML(), pattern instanceof Empty);
+                    try {
+                        assertTrue(pattern.toHTML() + "<br/>" + innerXML(testSuite) + "<br/>", pattern instanceof Empty);
+                    } catch(e) {
+                        assertTrue(e.toString() + "<br/>" + innerXML(testSuite) + "<br/>", false);
+                    }
                 } else if (next.tagName === "invalid") {
-                    assertTrue(pattern.toHTML(), pattern instanceof NotAllowed);
+                    try {
+                        assertTrue(pattern.toHTML() + "<br/>" + innerXML(testSuite) + "<br/>", pattern instanceof NotAllowed);
+                    } catch(e) {
+                        assertTrue(e.toString() + "<br/>" + innerXML(testSuite) + "<br/>", true);
+                    }
                 }
             }
         }
@@ -57,14 +74,15 @@
         relaxNGValidator.setSaxParser(saxParser);
         try {
             saxParser.parseString(xml);
-        } finally {
-            return relaxNGValidator.resultPattern;
+        } catch(e) {
+            return new NotAllowed(e.toString, e);
         }
+        return relaxNGValidator.resultPattern;
     }
     
     function runAllTests () {
-        setUp();
-        testValidateSpecTest();
+        //setUp();
+        //testValidateSpecTest();
         setUp();
         testCorrect();
         
