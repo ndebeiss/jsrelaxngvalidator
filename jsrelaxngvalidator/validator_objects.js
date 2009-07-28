@@ -111,7 +111,7 @@ function Param(localName, string) {
     this.string = string;
 }
 Param.prototype.toHTML = function() {
-    return "<table><tr><th>Param</th></tr><tr><td>localName</td><td>" + this.localName + "</td></tr><tr><td>string</td><td>" + this.string + "</td></tr></table>";
+    return "<table><tr><th>Param</th></tr><tr><td>localName</td><td>" + this.localName + "</td></tr><tr><td>string</td><td>[" + this.string + "]</td></tr></table>";
 };
 Param.prototype.toString = function() {
     return "Param";
@@ -254,7 +254,7 @@ NotAllowed.prototype.toHTML = function() {
     if (this.childNode.toHTML) {
         string += this.childNode.toHTML();
     } else {
-        string += this.childNode;
+        string += "[" + this.childNode + "]";
     }
     return string + "</td></tr></table>";
 };
@@ -362,7 +362,7 @@ function Value(datatype, string, context) {
     this.context = context;
 }
 Value.prototype.toHTML = function() {
-    return "<table><tr><th>Data</th></tr><tr><td>datatype</td><td>" + this.datatype.toHTML() + "</td></tr><tr><td>string</td><td>" + this.string + "</td></tr><tr><td>context</td><td>" + this.context.toHTML() + "</td></tr></table>";
+    return "<table><tr><th>Data</th></tr><tr><td>datatype</td><td>" + this.datatype.toHTML() + "</td></tr><tr><td>string</td><td>[" + this.string + "]</td></tr><tr><td>context</td><td>" + this.context.toHTML() + "</td></tr></table>";
 };
 Value.prototype.toString = function() {
     return "Value";
@@ -449,7 +449,7 @@ function TextNode(string) {
     this.string = string;
 }
 TextNode.prototype.toHTML = function() {
-    return "<table><tr><th>TextNode</th></tr><tr><td>string</td><td>" + this.string + "</td></tr></table>";
+    return "<table><tr><th>TextNode</th></tr><tr><td>string</td><td>[" + this.string + "]</td></tr></table>";
 };
 TextNode.prototype.toString = function() {
     return "TextNode";
@@ -460,7 +460,7 @@ function AttributeNode(qName, string) {
     this.string = string;
 }
 AttributeNode.prototype.toHTML = function() {
-    return "<table><tr><th>AttributeNode</th></tr><tr><td>qName</td><td>" + this.qName.toHTML() + "</td></tr><tr><td>string</td><td>" + this.string + "</td></tr></table>";
+    return "<table><tr><th>AttributeNode</th></tr><tr><td>qName</td><td>" + this.qName.toHTML() + "</td></tr><tr><td>string</td><td>[" + this.string + "]</td></tr></table>";
 };
 AttributeNode.prototype.toString = function() {
     return "AttributeNode";

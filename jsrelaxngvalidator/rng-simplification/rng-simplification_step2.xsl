@@ -5,6 +5,7 @@
 
 <!-- 7.2 
 Annotations (i.e., attributes and elements from foreign namespaces) are removed.
+nsp:* are the markups used as a work-around the fact that xslt namespace axis is not supported in firefox
 -->
 
 <xsl:template match="rng:*|nsp:*|text()|@*[namespace-uri()='']">

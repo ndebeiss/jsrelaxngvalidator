@@ -412,7 +412,7 @@ B64         ::=  [A-Za-z0-9+/]
                 if (value.toLowerCase() == patternValue.toLowerCase()) {
                     return new Empty();
                 } else {
-                    return new NotAllowed("invalid value, expected is " + patternValue, datatype, string, 10);
+                    return new NotAllowed("invalid value, expected is [" + patternValue + "]", datatype, string, 10);
                 }
                 
             } else if (datatype.localName == "float" || datatype.localName == "double" || datatype.localName == "decimal") {
@@ -421,7 +421,7 @@ B64         ::=  [A-Za-z0-9+/]
                 if (value == patternValue) {
                     return new Empty();
                 } else {
-                    return new NotAllowed("invalid value, expected is " + patternValue, datatype, string, 10);
+                    return new NotAllowed("invalid value, expected is [" + patternValue + "]", datatype, string, 10);
                 }
                 
             } else if (datatype.localName == "integer" || datatype.localName == "long" || datatype.localName == "int" || datatype.localName == "short" || datatype.localName == "byte" || datatype.localName == "negativeInteger" || datatype.localName == "nonPositiveInteger" || datatype.localName == "nonNegativeInteger" || datatype.localName == "positiveInteger" || datatype.localName == "unsignedLong" || datatype.localName == "unsignedInt" || datatype.localName == "unsignedShort" || datatype.localName == "unsignedByte") {
@@ -430,7 +430,7 @@ B64         ::=  [A-Za-z0-9+/]
                 if (value == patternValue) {
                     return new Empty();
                 } else {
-                    return new NotAllowed("invalid value, expected is " + patternValue, datatype, string, 10);
+                    return new NotAllowed("invalid value, expected is [" + patternValue + "]", datatype, string, 10);
                 }
                 
             } else if (datatype.localName == "anyURI" || datatype.localName == "QName" || datatype.localName == "NOTATION") {
@@ -439,7 +439,7 @@ B64         ::=  [A-Za-z0-9+/]
                 if (value == patternValue) {
                     return new Empty();
                 } else {
-                    return new NotAllowed("invalid value, expected is " + patternValue, datatype, string, 10);
+                    return new NotAllowed("invalid value, expected is [" + patternValue + "]", datatype, string, 10);
                 }
                 
             } else if (datatype.localName == "string" || datatype.localName == "normalizedString" || datatype.localName == "token" || datatype.localName == "language" || datatype.localName == "Name" || datatype.localName == "NCName") {
@@ -448,7 +448,7 @@ B64         ::=  [A-Za-z0-9+/]
                 if (value == patternValue) {
                     return new Empty();
                 } else {
-                    return new NotAllowed("invalid value, expected is " + patternValue, datatype, string, 10);
+                    return new NotAllowed("invalid value, expected is [" + patternValue + "]", datatype, string, 10);
                 }
                 
             } else if (datatype.localName == "base64Binary") {
@@ -457,7 +457,7 @@ B64         ::=  [A-Za-z0-9+/]
                 if (value == patternValue) {
                     return new Empty();
                 } else {
-                    return new NotAllowed("invalid value, expected is " + patternValue, datatype, string, 10);
+                    return new NotAllowed("invalid value, expected is [" + patternValue + "]", datatype, string, 10);
                 }
                 
             } else if (datatype.localName == "hexBinary") {
@@ -467,7 +467,7 @@ B64         ::=  [A-Za-z0-9+/]
                 if (value.toUpperCase() == patternValue.toUpperCase()) {
                     return new Empty();
                 } else {
-                    return new NotAllowed("invalid value, expected is " + patternValue, datatype, string, 10);
+                    return new NotAllowed("invalid value, expected is [" + patternValue + "]", datatype, string, 10);
                 }
                 
             } else {

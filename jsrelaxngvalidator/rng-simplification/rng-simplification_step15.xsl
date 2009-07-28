@@ -34,7 +34,7 @@ A top-level grammar and its start element are created, if not already present. A
 	</rng:grammar>
 </xsl:template>
 
-<xsl:template match="rng:define|rng:define/@name|rng:ref/@name"/>
+<xsl:template match="rng:define|rng:define/@name|rng:ref/@name|rng:parentRef/@name"/>
 
 <xsl:template match="rng:define" mode="step7.19-define">
 	<xsl:copy>

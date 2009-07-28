@@ -30,7 +30,7 @@
         var correctSchemas = spectest.getElementsByTagName("correct");
         for (var i = 0 ; i < correctSchemas.length ; i++) {
             var correctSchema = correctSchemas.item(i);
-            var testSuite;
+            var testSuite = undefined;
             var parent = correctSchema;
             while (!testSuite && parent && parent.tagName) {
                 parent = parent.parentNode;
@@ -38,24 +38,28 @@
                     testSuite = parent;
                 }
             }
-            var relaxng;
+            validation_result.innerHTML += innerXML(testSuite) + "<br/>";
+            var relaxng = undefined;
             var rootNode = getFirstChildElement(correctSchema);
             var schemaAsText = innerXML(rootNode);
             if (rootNode.tagName !== "grammar") {
-                relaxng = createDocumentFromText("<grammar xmlns=\"http://relaxng.org/ns/structure/1.0\" datatypeLibrary=\"http://www.w3.org/2001/XMLSchema-datatypes\"><start><ref name=\"content\"/></start><define name=\"content\">" + schemaAsText + "</define></grammar>");
+                relaxng = createDocumentFromText("<rng:grammar xmlns:rng=\"http://relaxng.org/ns/structure/1.0\" datatypeLibrary=\"http://www.w3.org/2001/XMLSchema-datatypes\"><rng:start><rng:ref name=\"content\"/></rng:start><rng:define name=\"content\">" + schemaAsText + "</rng:define></rng:grammar>");
             } else {
                 relaxng = createDocumentFromText(schemaAsText);
             }
             for (var next = getNextSiblingElement(correctSchema) ; next ; next = getNextSiblingElement(next)) {
                 var xml = getFirstChildElement(next);
-                var pattern = validate(innerXML(xml), relaxng);
                 if (next.tagName === "valid") {
+                    validation_result.innerHTML += "valid :<br/>";
+                    var pattern = validate(innerXML(xml), relaxng);
                     try {
                         assertTrue(pattern.toHTML() + "<br/>" + innerXML(testSuite) + "<br/>", pattern instanceof Empty);
                     } catch(e) {
                         assertTrue(e.toString() + "<br/>" + innerXML(testSuite) + "<br/>", false);
                     }
                 } else if (next.tagName === "invalid") {
+                    validation_result.innerHTML += "invalid :<br/>";
+                    var pattern = validate(innerXML(xml), relaxng);
                     try {
                         assertTrue(pattern.toHTML() + "<br/>" + innerXML(testSuite) + "<br/>", pattern instanceof NotAllowed);
                     } catch(e) {

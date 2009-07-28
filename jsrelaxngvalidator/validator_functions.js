@@ -386,7 +386,9 @@ ValidatorFunctions.prototype.datatypeEqual = function(datatype, string1, context
     normalizeWhitespace s = unwords (words s)
     */
 ValidatorFunctions.prototype.normalizeWhitespace = function(string) {
-    return string.split(/\s+/).join(" ");
+    var value = string.replace(/[\t\n\r ]+/g, " ");
+    //removes leading and trailing space
+    return value.replace(/^ /, "").replace(/ $/, "");
 };
 
     /*
@@ -566,7 +568,7 @@ ValidatorFunctions.prototype.valueMatch = function(context, pattern, string, chi
     var nullable = this.nullable(pattern);
     var isWhitespace = this.whitespace(string);
     if (nullable && isWhitespace) {
-        return true;
+        return new Empty();
     }
     var textDerivResult = this.textDeriv(context, pattern, string, childNode);
     //in order to keep original NotAllowed pattern
