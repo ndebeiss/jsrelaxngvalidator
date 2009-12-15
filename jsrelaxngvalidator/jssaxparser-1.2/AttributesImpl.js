@@ -104,6 +104,14 @@ function _getValueByURI(uri, localName) {
     return null;
 }
 
+function _getPrefix(localName, qName) {
+    var prefix = null;
+    if (localName.length !== qName.length) {
+        prefix = qName.split(":")[0];
+    }
+    return prefix;
+}
+
 function Sax_Attribute(namespaceURI, prefix, localName, qName, type, value) {
     this.namespaceURI = namespaceURI;
     //avoiding error, the empty prefix of attribute must be null
@@ -120,13 +128,15 @@ function Sax_Attribute(namespaceURI, prefix, localName, qName, type, value) {
 
 // INCOMPLETE
 // http://www.saxproject.org/apidoc/org/xml/sax/helpers/AttributesImpl.html
-function AttributesImpl(attsArray) {
-    if (attsArray) {
-        this.attsArray = attsArray;
-    } else {
-        this.attsArray = [];
+function AttributesImpl(atts) {
+    this.attsArray = [];
+    if (atts) {
+        this.setAttributes(atts);
     }
 }
+AttributesImpl.prototype.toString = function() {
+    return "AttributesImpl";
+};
 
 // INTERFACE: Attributes: http://www.saxproject.org/apidoc/org/xml/sax/Attributes.html
 AttributesImpl.prototype.getIndex = function(arg1, arg2) {
@@ -193,11 +203,8 @@ AttributesImpl.prototype.getValue = function(arg1, arg2) {
 };
 // Other AttributesImpl methods
 AttributesImpl.prototype.addAttribute = function (uri, localName, qName, type, value) {
-    var prefix = null;
-    if (localName.length !== qName.length) {
-        prefix = qName.split(":")[0];
-    }
-    this.attsArray.push(new Sax_Attribute(uri, prefix, localName, qName, type, value));
+    var prefix = _getPrefix.call(this, localName, qName);
+    this.addPrefixedAttribute(uri, prefix, localName, qName, type, value);
 };
 AttributesImpl.prototype.clear = function () {
     this.attsArray = [];
@@ -205,9 +212,25 @@ AttributesImpl.prototype.clear = function () {
 AttributesImpl.prototype.removeAttribute = function (index) {
     this.attsArray.splice(index, 1);
 };
-//not sure those two functions should be available
-AttributesImpl.prototype.setAttribute = function (index, uri, localName, qName, type, value) {};
-AttributesImpl.prototype.setAttributes = function (atts) {};
+
+AttributesImpl.prototype.addAttributeAtIndex = function (index, uri, localName, qName, type, value) {
+    var prefix = _getPrefix.call(this, localName, qName);
+    this.attsArray.splice(index, 0, new Sax_Attribute(uri, prefix, localName, qName, type, value));
+};
+
+AttributesImpl.prototype.setAttribute = function (index, uri, localName, qName, type, value) {
+    this.setURI(index, uri);
+    this.setLocalName(index, localName);
+    this.setQName(index, qName);
+    this.setType(index, type);
+    this.setValue(index, value);
+};
+
+AttributesImpl.prototype.setAttributes = function (atts) {
+    for (var i = 0 ; i < atts.getLength() ; i ++) {
+        this.addPrefixedAttribute(atts.getURI(i), atts.getPrefix(i), atts.getLocalName(i), atts.getType(i), atts.getValue(i));
+    }
+};
 
 AttributesImpl.prototype.setLocalName = function (index, localName) {
     this.attsArray[index].localName = localName;
@@ -248,9 +271,20 @@ Attributes2Impl(Attributes atts)
 // http://www.saxproject.org/apidoc/org/xml/sax/ext/Attributes2Impl.html
 // When implemented, use this attribute class if this.features['http://xml.org/sax/features/use-attributes2'] is true
 function Attributes2Impl (atts) {
-    if (atts) {}
-    throw 'Attributes2Impl is presently unimplemented';
+    AttributesImpl.call(this, atts);
+    if (atts) {
+        //by default, isDeclared is false and isSpecified is false
+        for (var i = 0 ; i < atts.getLength() ; i ++) {
+            this.setDeclared(atts.isDeclared(i));
+            this.setSpecified(atts.isSpecified(i));
+        }
+    }
 }
+
+Attributes2Impl.prototype.toString = function() {
+    return "Attributes2Impl";
+};
+
 Attributes2Impl.prototype = new AttributesImpl();
 
 // INTERFACE: Attributes2: http://www.saxproject.org/apidoc/org/xml/sax/ext/Attributes2.html
@@ -268,10 +302,31 @@ Attributes2Impl.prototype = new AttributesImpl();
  boolean 	isSpecified(java.lang.String uri, java.lang.String localName)
           Returns true unless the attribute value was provided by DTD defaulting.
 */
+// Private helpers for Attributes2Impl (private static treated as private instance below)
+function _getIndex(arg1, arg2) {
+    var index;
+    if (arg2 === undefined) {
+        if (typeof arg1 === "string") {
+            index = _getIndexByQName.call(this, arg1);
+        } else {
+            index = arg1;
+        }
+    } else {
+        index = _getIndexByURI.call(this, arg1, arg2);
+    }
+    return index;
+}
+
 Attributes2Impl.prototype.isDeclared = function (indexOrQNameOrURI, localName) {
+    var index = _getIndex(indexOrQNameOrURI, localName);
+    return this.attsArray[index].declared;
 };
+
 Attributes2Impl.prototype.isSpecified = function (indexOrQNameOrURI, localName) {
+    var index = _getIndex(indexOrQNameOrURI, localName);
+    return this.attsArray[index].specified;
 };
+
 // Other Attributes2Impl methods
 /*
  void 	addAttribute(java.lang.String uri, java.lang.String localName, java.lang.String qName, java.lang.String type, java.lang.String value)
@@ -286,16 +341,26 @@ void 	removeAttribute(int index)
           Assign a value to the "specified" flag of a specific attribute.
  **/
 Attributes2Impl.prototype.addAttribute = function (uri, localName, qName, type, value) {
+    var prefix = _getPrefix.call(this, localName, qName);
+    this.addPrefixedAttribute(uri, prefix, localName, qName, type, value);
+    //index of just added attribute is atts.getLength - 1
+    var index = this.getLength() - 1;
+    //by default declared is false, and specified is true
+    this.setDeclared(index, false);
+    this.setSpecified(index, true);
 };
-Attributes2Impl.prototype.removeAttribute = function (index) {
-};
+
 Attributes2Impl.prototype.setAttributes = function (atts) {
+    
 };
 Attributes2Impl.prototype.setDeclared = function (index, value) {
+    this.attsArray[index].declared = value;
 };
 Attributes2Impl.prototype.setSpecified = function (index, value) {
+    this.attsArray[index].specified = value;
 };
 
 this.AttributesImpl = AttributesImpl;
+this.Attributes2Impl = Attributes2Impl;
 
 }()); // end namespace

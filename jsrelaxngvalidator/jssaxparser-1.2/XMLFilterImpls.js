@@ -69,7 +69,7 @@ function XMLFilterImpl (parent) {
 
 XMLFilterImpl.prototype.toString = function () {
     return "XMLFilterImpl";
-}
+};
 
 // INTERFACE: XMLFilter: http://www.saxproject.org/apidoc/org/xml/sax/XMLFilter.html
 XMLFilterImpl.prototype.setParent = function (parent) { // e.g., SAXParser
@@ -226,7 +226,7 @@ XMLFilterImpl2.prototype = new XMLFilterImpl();
 
 XMLFilterImpl2.prototype.toString = function () {
     return "XMLFilterImpl2";
-}
+};
 
 // INTERFACE: DeclHandler: http://www.saxproject.org/apidoc/org/xml/sax/ext/DeclHandler.html
 
