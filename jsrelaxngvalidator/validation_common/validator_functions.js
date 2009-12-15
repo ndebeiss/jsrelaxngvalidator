@@ -72,7 +72,7 @@ ValidatorFunctions.prototype.contains = function(nameClass, qName) {
     } else if (nameClass instanceof NameClassChoice) {
         return this.contains(nameClass.nameClass1, qName) || this.contains(nameClass.nameClass2, qName);
     }
-    throw new Error('Unexpected result for ValidatorFunctions.contains()');
+    throw new Error('Unexpected result for ValidatorFunctions.contains() ' + nameClass.toString());
 };
 
     /*
@@ -122,7 +122,7 @@ ValidatorFunctions.prototype.nullable = function(pattern) {
     } else if (pattern instanceof After) {
         return false;
     } 
-    throw new Error('Unexpected result for ValidatorFunctions.nullable()');
+    throw new Error('Unexpected result for ValidatorFunctions.nullable() ' + pattern);
 };
     
     /*
@@ -151,7 +151,7 @@ ValidatorFunctions.prototype.childDeriv = function(context, pattern, childNode) 
         this.debug("end of validation", p4, childNode);
         return this.endTagDeriv(p4, childNode);
     }
-    throw new Error('Unexpected result for ValidatorFunctions.childDeriv()');
+    throw new Error('Unexpected result for ValidatorFunctions.childDeriv()' + childNode);
 };
 
     /*
@@ -386,9 +386,7 @@ ValidatorFunctions.prototype.datatypeEqual = function(datatype, string1, context
     normalizeWhitespace s = unwords (words s)
     */
 ValidatorFunctions.prototype.normalizeWhitespace = function(string) {
-    var value = string.replace(/[\t\n\r ]+/g, " ");
-    //removes leading and trailing space
-    return value.replace(/^ /, "").replace(/ $/, "");
+    return string.split(/\s+/).join(" ");
 };
 
     /*
@@ -405,7 +403,7 @@ ValidatorFunctions.prototype.applyAfter = function(funct, pattern) {
     } else if (pattern instanceof NotAllowed) {
         return pattern;
     }
-    throw new Error('Unexpected result for ValidatorFunctions.applyAfter()');
+    throw new Error('Unexpected result for ValidatorFunctions.applyAfter() ' + pattern);
 };
 
     /*
@@ -549,6 +547,10 @@ ValidatorFunctions.prototype.attDeriv = function(context, pattern, attributeNode
         var attributeNameCheck = this.contains(pattern.nameClass, attributeNode.qName);
         if (attributeNameCheck) {
             var valueMatched = this.valueMatch(context, pattern.pattern, attributeNode.string, attributeNode);
+            // AUGMENTATION : the AttributeNode is typed
+            if (valueMatched instanceof Empty && (pattern.pattern instanceof Data || pattern.pattern instanceof DataExcept)) {
+                attributeNode.setType(pattern.pattern.datatype.localName);
+            }
             return valueMatched;
         } else {
             return new NotAllowed("invalid attribute", pattern, attributeNode);
@@ -568,7 +570,7 @@ ValidatorFunctions.prototype.valueMatch = function(context, pattern, string, chi
     var nullable = this.nullable(pattern);
     var isWhitespace = this.whitespace(string);
     if (nullable && isWhitespace) {
-        return new Empty();
+        return true;
     }
     var textDerivResult = this.textDeriv(context, pattern, string, childNode);
     //in order to keep original NotAllowed pattern
@@ -612,6 +614,10 @@ ValidatorFunctions.prototype.startTagCloseDeriv = function(pattern, childNode) {
     } else if (pattern instanceof OneOrMore) {
         return this.oneOrMore(this.startTagCloseDeriv(pattern.pattern, childNode));
     } else if (pattern instanceof Attribute) {
+        // AUGMENTATION : if defaultValue is provided then it is optional, and it must be augmented
+        if (pattern.defaultValue && childNode instanceof ElementNode && pattern.nameClass instanceof Name) {
+            childNode.addAttribute(pattern);
+        }
         return new NotAllowed("attribute missing", pattern, childNode);
     } else {
         return pattern;
