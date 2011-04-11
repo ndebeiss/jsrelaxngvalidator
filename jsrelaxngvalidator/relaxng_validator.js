@@ -83,20 +83,28 @@ function _dumpNamespaces (relaxng, node, namespaces) {
 }
 
 /**
- * @property childNode Root node of the xml being validated
- * @property context
- * @property currentElementNode
- * @property defines
- * @property instanceContext
- * @property pattern
- * @property relaxng
- * @property relaxng_namespaces
- * @property result Where messages will be dumped
- * @property resultPattern
- * @property rootNode
- * @property sax_events
- * @property saxParser Keeps a reference on saxParser in order to fire an error and stops parsing
- * @property validatorFunctions Reference to its validator_functions
+ * Returns an instance used for validating RelaxNG schemas (XML sytax), whose 
+ *  process can begun by invoking the startDocument() method
+ * @class Used for validating RelaxNG schemas (XML sytax)
+ * @param {HTMLElement} result Where messages will be dumped
+ * @param {HTMLElement} sax_events For reporting SAX events? (NOT IN USE)
+ * @param {XMLDocument} relaxng The XML RelaxNG document node
+ * @param {Boolean} debug Debug mode (invokes overridable method debugMsg() with HTML)
+ * 
+ * @property {XMLElement} childNode Root node of the xml being validated
+ * @property {Context} context
+ * @property {XMLElement} currentElementNode
+ * @property {NodeList} defines The RelaxNG "define" elements
+ * @property {Context} instanceContext
+ * @property {Object} pattern Adheres to interface with methods toHTML() and toString()
+ * @property {XMLDocument} relaxng The (simplified) XML RelaxNG document node
+ * @property {Array} relaxng_namespaces
+ * @property {HTMLElement} result Where messages will be dumped
+ * @property {Object} resultPattern Adheres to interface with methods toHTML() and toString()
+ * @property rootNode The documentElement of the "relaxng" document node argument
+ * @property {HTMLElement} sax_events For reporting SAX events? NOT IN USE
+ * @property {SaxParser} saxParser Keeps a reference on saxParser in order to fire an error and stops parsing
+ * @property {ValidatorFunctions} validatorFunctions Reference to its validator_functions
  */
 function RelaxNGValidator(result, sax_events, relaxng, debug) {
     this.result = result;
