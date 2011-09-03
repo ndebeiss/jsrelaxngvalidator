@@ -1,0 +1,89 @@
+<html>
+  <head>
+    <script type="text/javascript" src="../jsrelaxngvalidator/jssaxparser-1.4/sax.js"></script>
+	<script type="text/javascript" src="../jsrelaxngvalidator/jsdatatypelibrary-0.4/datatype_library.js"></script>
+	<script type="text/javascript" src="../jsrelaxngvalidator/dom_utils.js"></script>
+	<script type="text/javascript" src="../jsrelaxngvalidator/applyXslt.js"></script>
+	<script type="text/javascript" src="../jsrelaxngvalidator/relaxng_validator.js"></script>
+	<script type="text/javascript" src="../jsrelaxngvalidator/validation_common/validator_functions.js"></script>
+	<script type="text/javascript" src="../jsrelaxngvalidator/validation_common/validator_objects.js"></script>
+
+<script type="text/javascript">
+function validate(xml, relaxng) {
+    var validation_result = document.getElementById('validation_result');
+    validation_result.innerHTML = "";
+    var sax_events = document.getElementById('sax_events');
+    sax_events.innerHTML = "";
+    document.getElementById("steps").innerHTML = "";
+    var relaxNGValidator = new RelaxNGValidator(validation_result, sax_events, relaxng, true);
+    var saxParser = XMLReaderFactory.createXMLReader();
+    saxParser.setContentHandler(relaxNGValidator);
+    saxParser.setErrorHandler(relaxNGValidator);
+    relaxNGValidator.setSaxParser(saxParser);
+    try {
+        saxParser.parseString(xml);
+    } catch (e) { 
+        document.getElementById("error").innerHTML = e.toString();
+    }
+    return relaxNGValidator.resultPattern;
+}
+
+function validateFromTextarea(xmlId, relaxngId) {
+    var xml = document.getElementById(xmlId).value;
+    var relaxng = document.getElementById(relaxngId).value;
+    validate(xml, relaxng);
+}
+
+function recordStep(message, pattern, childNode) {
+   document.getElementById("steps").innerHTML += message + "<br/>";
+}
+
+</script>
+
+<style type="text/css">
+#validation_result {
+   margin-bottom: 50px;
+}
+</style>
+
+</head>
+  <body>
+<div>
+<textarea id="input" cols="80" rows="20">
+<rootTag>
+   <tag>
+	<tagbelow>
+          value
+        </tagbelow>
+   </tag>
+</rootTag>
+</textarea>
+
+<textarea id="schema" cols="80" rows="20">
+<rng:grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns:rng="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+	<rng:start>
+		<rng:ref name="rootTag"/>
+	</rng:start>
+	<rng:define name="rootTag">
+		<rng:element name="rootTag">
+			<rng:element name="tag">
+                	        <rng:element name="tagbelow">
+	        	    		<rng:data type="string"/>
+				</rng:element>
+			</rng:element>
+		</rng:element>
+	</rng:define>
+</rng:grammar>
+
+</textarea>
+</div>
+<div>
+<input type="button" value="validate" onclick="validateFromTextarea('input', 'schema')"/>
+</div>
+
+		<div id="validation_result"></div>
+		<div id="sax_events"></div>
+                <div id="steps"></div>
+                <div id="error"></div>
+  </body>
+</html>

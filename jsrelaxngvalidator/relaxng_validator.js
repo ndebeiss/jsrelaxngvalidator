@@ -106,23 +106,35 @@ function _dumpNamespaces (relaxng, node, namespaces) {
  * @property {SaxParser} saxParser Keeps a reference on saxParser in order to fire an error and stops parsing
  * @property {ValidatorFunctions} validatorFunctions Reference to its validator_functions
  */
-function RelaxNGValidator(result, sax_events, relaxng, debug) {
+function RelaxNGValidator(result, sax_events, relaxng, debug, xsltPath) {
     this.result = result;
     this.sax_events = sax_events;
     if (debug) {
         this.debug = true;
+    }
+    if (!xsltPath) {
+        xsltPath = "";
+    } else if (xsltPath.charAt(xsltPath.length - 1) !== '/') {
+        xsltPath = xsltPath + "/";
+    }
+    if (typeof relaxng === "string") {
+        relaxng = createDocumentFromText(relaxng);
+        if (relaxng.documentElement.nodeName === "parsererror") {
+            result.innerHTML = innerXML(relaxng.documentElement);
+            throw new Error();
+        }
     }
     
     this.relaxng_namespaces = [];
     _extractNamespaces(relaxng.documentElement, this.relaxng_namespaces);
     
     // First transformation is to import included schemas
-    this.relaxng = applyXslt(relaxng, 'rng-simplification/rng-simplification_step1.xsl');
+    this.relaxng = applyXslt(relaxng, xsltPath + 'rng-simplification/rng-simplification_step1.xsl');
     _extractNamespaces(this.relaxng.documentElement, this.relaxng_namespaces);
     
     // TODO 18
     for (var i = 2 ; i < 17 ; i++) {
-        this.relaxng = applyXslt(this.relaxng, 'rng-simplification/rng-simplification_step' + i + '.xsl');
+        this.relaxng = applyXslt(this.relaxng, xsltPath + 'rng-simplification/rng-simplification_step' + i + '.xsl');
         // Work around the bug of the Firefox XSLT processor which does
         //   not copy namespaces mappings with function xsl:copy
         _dumpNamespaces(relaxng, this.relaxng.documentElement, this.relaxng_namespaces);
@@ -393,7 +405,13 @@ RelaxNGValidator.prototype.endDocument = function() {
         this.debugMsg("result pattern of that validation is =<br/>" + this.resultPattern.toHTML());
     }
     if (this.resultPattern instanceof NotAllowed) {
-        this.fireRelaxngError("document not valid : " + this.resultPattern.toHTML() + "<br/>");
+        var msg = "document not valid : " + this.resultPattern.message + ", expected : " + this.resultPattern.pattern.toHTML() + ", found : ";
+        if (this.resultPattern.childNode.toHTML) {
+            msg += this.resultPattern.childNode.toHTML();
+        } else {
+            msg += this.resultPattern.childNode;
+        }
+        this.fireRelaxngError(msg);
     } else {
         this.result.innerHTML += "<h4>That XML is valid</h4>";
     }
@@ -404,22 +422,21 @@ RelaxNGValidator.prototype.setDocumentLocator = function(locator) {};
 RelaxNGValidator.prototype.debugMsg = function(message) {};
 
 RelaxNGValidator.prototype.warning = function(saxException) {
-    this.relaxngError(saxException['char'], saxException.index, saxException.message);
+    this.relaxngError(saxException.message);
 };
 RelaxNGValidator.prototype.error = function(saxException) {
-    this.relaxngError(saxException['char'], saxException.index, saxException.message);
+    this.relaxngError(saxException.message);
 };
 RelaxNGValidator.prototype.fatalError = function(saxException) {
-    this.relaxngError(saxException['char'], saxException.index, saxException.message);
+    this.relaxngError(saxException.message);
 };
 
 RelaxNGValidator.prototype.fireRelaxngError = function(message) {
-    this.relaxngError(this.saxParser['char'], this.saxParser.index, message);
+    this.relaxngError(message);
 };
 
-RelaxNGValidator.prototype.relaxngError = function(ch, index, message) {
-    this.result.innerHTML += "validation error at char : [" + ch + "] at index : " + index + "<br/>";
-    this.result.innerHTML += "message is : [" + message + "]<br/>";
+RelaxNGValidator.prototype.relaxngError = function(message) {
+    this.result.innerHTML += "<div>validation error : <span>" + message + "</span></div>";
 };
 
 

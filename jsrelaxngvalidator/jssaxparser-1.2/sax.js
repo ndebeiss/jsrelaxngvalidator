@@ -176,9 +176,8 @@ function SAXParser (contentHandler, lexicalHandler, errorHandler, declarationHan
     this.features['http://xml.org/sax/features/unicode-normalization-checking'] = false;
     this.features['http://xml.org/sax/features/use-attributes2'] = true; // Not supported yet
     this.features['http://xml.org/sax/features/use-locator2'] = !!(locator && // No interfaces in JavaScript, so we duck-type:
-                                                                                                                    typeof locator.getXMLVersion === 'function' &&
-                                                                                                                    typeof locator.getEncoding === 'function'
-                                                                                                                ); // Not supported yet
+                                                                    typeof locator.getXMLVersion === 'function' &&
+                                                                    typeof locator.getEncoding === 'function'); // Not supported yet
     this.features['http://xml.org/sax/features/use-entity-resolver2'] = true;
     this.features['http://xml.org/sax/features/validation'] = false; // Not supported yet
     this.features['http://xml.org/sax/features/xmlns-uris'] = false;
@@ -902,6 +901,12 @@ XMLReaderFactory.checkDependencies = function() {
         } catch(e4) {
             throw new SAXException("implementation of XMLFilterImpl, like XMLFilterImpls.js, not provided and could not be dynamically loaded because of exception", e4);
         }
+    }
+    //Locator is optional
+    if (typeof that.LocatorImpl !== 'function') {
+        try {
+            this.importJS("LocatorImpls.js");
+        } catch(e5) {}
     }
 };
 
