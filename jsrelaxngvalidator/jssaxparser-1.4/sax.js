@@ -1,6 +1,42 @@
 /*global window, document, XMLHttpRequest, ActiveXObject, AnyName, Attribute, AttributeNode, Choice, Context, DatatypeLibrary, Element, ElementNode, Empty, Group, NOT_CHAR, 
 Name, NotAllowed, OneOrMore, QName, SAXScanner, Text , TextNode, ValidatorFunctions, XMLFilterImpl2, NamespaceSupport, InputSource, StringReader, Attributes2Impl, AttributesImpl */
 
+/*
+Copyright or © or Copr. Nicolas Debeissat, Brett Zamir
+
+nicolas.debeissat@gmail.com (http://debeissat.nicolas.free.fr/) brettz9@yahoo.com
+
+This software is a computer program whose purpose is to parse XML
+files respecting SAX2 specifications.
+
+This software is governed by the CeCILL license under French law and
+abiding by the rules of distribution of free software. You can use,
+modify and/ or redistribute the software under the terms of the CeCILL
+license as circulated by CEA, CNRS and INRIA at the following URL
+"http://www.cecill.info".
+
+As a counterpart to the access to the source code and rights to copy,
+modify and redistribute granted by the license, users are provided only
+with a limited warranty and the software's author, the holder of the
+economic rights, and the successive licensors have only limited
+liability.
+
+In this respect, the user's attention is drawn to the risks associated
+with loading, using, modifying and/or developing or reproducing the
+software by the user in light of its specific status of free software,
+that may mean that it is complicated to manipulate, and that also
+therefore means that it is reserved for developers and experienced
+professionals having in-depth computer knowledge. Users are therefore
+encouraged to load and test the software's suitability as regards their
+requirements in conditions enabling the security of their systems and/or
+data to be ensured and, more generally, to use and operate it in the
+same conditions as regards security.
+
+The fact that you are presently reading this means that you have had
+knowledge of the CeCILL license and that you accept its terms.
+
+*/
+
 (function () { // Begin namespace
 
 var that = this; // probably window object
@@ -140,12 +176,15 @@ function SAXParser (contentHandler, lexicalHandler, errorHandler, declarationHan
     this.features['http://xml.org/sax/features/unicode-normalization-checking'] = false;
     this.features['http://xml.org/sax/features/use-attributes2'] = true; // Not supported yet
     this.features['http://xml.org/sax/features/use-locator2'] = !!(locator && // No interfaces in JavaScript, so we duck-type:
-                                                                    typeof locator.getXMLVersion === 'function' &&
-                                                                    typeof locator.getEncoding === 'function'); // Not supported yet
+                                                                                                                    typeof locator.getXMLVersion === 'function' &&
+                                                                                                                    typeof locator.getEncoding === 'function'
+                                                                                                                ); // Not supported yet
     this.features['http://xml.org/sax/features/use-entity-resolver2'] = true;
-    this.features['http://xml.org/sax/features/validation'] = false; // Not supported yet
+    this.features['http://xml.org/sax/features/validation'] = false;
     this.features['http://xml.org/sax/features/xmlns-uris'] = false;
     this.features['http://xml.org/sax/features/xml-1.1'] = false; // Not supported yet
+
+    this.features['http://apache.org/xml/features/nonvalidating/load-external-dtd'] = false;
 
     // Our custom features (as for other features, retrieve/set publicly via getFeature/setFeature):
     // We are deliberately non-conformant by default (for performance reasons)
@@ -159,7 +198,7 @@ function SAXParser (contentHandler, lexicalHandler, errorHandler, declarationHan
         that feature is automatically enabled if validation of attribute-whitespace-normalization is activated
     */
     this.features['http://debeissat.nicolas.free.fr/ns/instance-augmentation'] = false;
-    //without that property sax_tests.html does not work as Firefox will not normalize attribute value same way
+    //without that property sax_vs_browser.html.html does not work as Firefox will not normalize attribute value properly
     this.features['http://debeissat.nicolas.free.fr/ns/attribute-whitespace-normalization'] = false;
 
     this.properties = {}; // objects
@@ -215,7 +254,7 @@ SAXParser.prototype.getProperty = function (name) { // (java.lang.String)
 // For convenience, when dealing with strings as input, one can simply use our own parseString() instead of
 // XMLReader's parse() which expects an InputSouce (or systemId)
 // Note: The InputSource argument is not fully supported, as the parser currently does not use its methods for parsing
-SAXParser.prototype.parse = function (inputOrSystemId) { // (InputSource input OR java.lang.String systemId)
+SAXParser.prototype.parse = function (inputOrSystemId, noCache) { // (InputSource input OR java.lang.String systemId)
     // Parse an XML document (void). OR
     // Parse an XML document from a system identifier (URI) (void).
     // may throw java.io.IOException or SAXException
@@ -249,6 +288,9 @@ SAXParser.prototype.parse = function (inputOrSystemId) { // (InputSource input O
     this.systemId = systemId;
     if (!xmlAsString) { // If not set above
         // Fix: According to the specification for parse() (and InputSource's systemId constructor), the URL should be fully resolved (not relative)
+        if (noCache) {
+            systemId += ((systemId.indexOf('?') === -1) ? '?' : '&') + '_saxQuertyTime=' + new Date().getTime();
+        }
         xmlAsString = SAXParser.loadFile(systemId);
         //get the path to the file
         path = systemId.substring(0, systemId.lastIndexOf("/") + 1);
@@ -258,6 +300,13 @@ SAXParser.prototype.parse = function (inputOrSystemId) { // (InputSource input O
 };
 
 SAXParser.prototype.parseString = function (xmlAsString) {
+    var reader = new StringReader(xmlAsString);
+    var readerWrapper = new ReaderWrapper(reader);
+    this.initReaders(readerWrapper, reader);
+    this.saxScanner.parse(readerWrapper);
+};
+
+SAXParser.prototype.initReaders = function (readerWrapper, reader) {
     var saxEvents = new XMLFilterImpl2(this);
     this.saxScanner = new SAXScanner(this, saxEvents);
     this.saxScanner.namespaceSupport = this.namespaceSupport;
@@ -266,20 +315,31 @@ SAXParser.prototype.parseString = function (xmlAsString) {
     } else {
         this.saxScanner.CHAR_DATA_REGEXP = /[<&\]]/;
     }
+    if (!(this.features['http://apache.org/xml/features/nonvalidating/load-external-dtd'])) {
+        this.saxScanner.loadExternalDtd = function(externalId) {};
+    }
     if (this.features['http://xml.org/sax/features/validation']) {
         this.features['http://debeissat.nicolas.free.fr/ns/instance-augmentation'] = true;
         saxEvents.endDocument = this.endDocument_validating;
     }
     if (this.features['http://debeissat.nicolas.free.fr/ns/attribute-whitespace-normalization']) {
-        this.features['http://debeissat.nicolas.free.fr/ns/instance-augmentation'] = true;
-        saxEvents.normalizeAttValue = SAXParser.whitespaceCollapse;
+        saxEvents.attWhitespaceNormalize = SAXParser.attWhitespaceNormalize;
+        if (this.features['http://debeissat.nicolas.free.fr/ns/instance-augmentation']) {
+            saxEvents.attWhitespaceCollapse = SAXParser.attWhitespaceCollapse;
+        }
     }
     if (this.features['http://debeissat.nicolas.free.fr/ns/instance-augmentation']) {
         saxEvents.startDocument = this.startDocument_augmenting;
         saxEvents.startDTD = this.startDTD_augmenting;
         saxEvents.elementDecl = this.elementDecl_augmenting;
         saxEvents.attributeDecl = this.attributeDecl_augmenting;
-        saxEvents.startElement = this.startElement_augmenting;
+        if (this.features['http://xml.org/sax/features/validation']) {
+            saxEvents.augmenting_elm = this.augmenting_elm;
+            saxEvents.startElement = this.startElement_validating;
+        } else {
+            saxEvents.augmenting_elm = this.augmenting_elm;
+            saxEvents.startElement = this.startElement_augmenting;
+        }
         saxEvents.endElement = this.endElement_augmenting;
         saxEvents.characters = this.characters_augmenting;
     }
@@ -292,16 +352,23 @@ SAXParser.prototype.parseString = function (xmlAsString) {
         this.getAttributesInstance = this.getAttributes1Instance;
     }
     if (this.contentHandler.locator) {
-        this.contentHandler.locator.saxScanner = this.saxScanner;
+        this.contentHandler.locator.reader = reader;
+        this.contentHandler.locator.setSystemId(this.systemId);
+        saxEvents.startDTDOld = saxEvents.startDTD;
+        saxEvents.startDTD = function(name, publicId, systemId) {
+            // Check: name or publicId ?
+            this.getContentHandler().locator.setPublicId(name);
+            return this.startDTDOld(name, publicId, systemId);
+	}
         this.contentHandler.locator.getColumnNumberOld = this.contentHandler.locator.getColumnNumber;
         this.contentHandler.locator.getLineNumberOld = this.contentHandler.locator.getLineNumber;
         this.contentHandler.locator.getColumnNumber = function () {
-            var columnNumber = this.saxScanner.index - this.saxScanner.xml.substring(0, this.saxScanner.index).lastIndexOf("\n");
+            var columnNumber = this.reader.nextIdx - this.reader.s.substring(0, this.reader.nextIdx).lastIndexOf("\n");
             this.setColumnNumber(columnNumber);
             return this.getColumnNumberOld();
         };
         this.contentHandler.locator.getLineNumber = function () {
-            var lineNumber = this.saxScanner.xml.substring(0, this.saxScanner.index).split("\n").length;
+            var lineNumber = this.reader.s.substring(0, this.reader.nextIdx).split("\n").length;
             this.setLineNumber(lineNumber);
             return this.getLineNumberOld();
         };
@@ -309,8 +376,7 @@ SAXParser.prototype.parseString = function (xmlAsString) {
     saxEvents.warning = this.warning;
     saxEvents.error = this.error;
     saxEvents.fatalError = this.fatalError;
-    this.saxScanner.parseString(xmlAsString);
-};
+}
 
 /* convenient method in order to set all handlers at once */
 SAXParser.prototype.setHandler = function (handler) { // (ContentHandler/LexicalHandler/ErrorHandler/DeclarationHandler/DtdHandler)/EntityResolver(2)
@@ -399,6 +465,7 @@ SAXParser.prototype.startDocument_augmenting = function() {
 
 SAXParser.prototype.startDTD_augmenting = function(name, publicId, systemId) {
     this.pattern = this.elements[name] = new Element(new Name(null, name));
+
     this.context = new Context(publicId, []);
     if (this.parent && this.parent.lexicalHandler) {
         return this.parent.lexicalHandler.startDTD.call(this.parent.lexicalHandler, name, publicId, systemId);
@@ -411,28 +478,30 @@ SAXParser.prototype.startDTD_augmenting = function(name, publicId, systemId) {
 			| '(' S? '#PCDATA' S? ')'
 */
 SAXParser.getPatternFromMixed = function(model, xmlFilter) {
-    var textNode = new Text();
-    var pattern;
     // if other elements
-    var splitOr = model.split("|");
-    //from the last to the second
-    for (var i = splitOr.length - 1 ; i > 0 ; i--) {
-        //trim whitespaces
-        var name = splitOr[i].replace(/^ ?/, "").replace(/ ?$/, "");
-        if (!xmlFilter.elements[name]) {
-            xmlFilter.elements[name] = new Element(new Name(null, name));
+    var pattern, mixed = /^\( ?#PCDATA ?(\|.*) ?\)\*$/.exec(model);
+    if (mixed !== null) {
+        //remove whitespaces
+        var elements = mixed[1].replace(/ /g, "");
+        var splitOr = elements.split("|");
+        //from the last to the second
+        for (var i = splitOr.length - 1 ; i > 0 ; i--) {
+            //trim whitespaces
+            var elemName = splitOr[i];
+            if (!xmlFilter.elements[elemName]) {
+                xmlFilter.elements[elemName] = new Element(new Name(null, elemName));
+            }
+            //adds it to the current pattern
+            if (pattern) {
+                pattern = new Group(xmlFilter.elements[elemName], pattern);
+            } else {
+                pattern = xmlFilter.elements[elemName];
+            }
         }
-        //adds it to the current pattern
-        if (pattern) {
-            pattern = new Group(xmlFilter.elements[name], pattern);
-        } else {
-            pattern = xmlFilter.elements[name];
-        }
+        // it is a zero or more
+        return new Choice(new Empty(), new OneOrMore(new Choice(new Text(), pattern)));
     }
-    if (!pattern) {
-        return textNode;
-    }
-    return new Group(textNode, pattern);
+    return new Text();
 };
 
 /*
@@ -441,6 +510,11 @@ SAXParser.getPatternFromMixed = function(model, xmlFilter) {
 [49]   	choice	   ::=   	'(' S? cp ( S? '|' S? cp )+ S? ')'
 [50]   	seq	   ::=   	'(' S? cp ( S? ',' S? cp )* S? ')'
 */
+/* XML Name regular expressions */
+// Should disallow independent high or low surrogates or inversed surrogate pairs and also have option to reject private use characters; but strict mode will need to check for sequence of 2 characters if a surrogate is found
+var NAME_START_CHAR = ":A-Z_a-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u0200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\ud800-\udbff\udc00-\udfff"; // The last two ranges are for surrogates that comprise #x10000-#xEFFFF; // Fix: Need to remove surrogate pairs here and handle elsewhere; also must deal with surrogates in entities
+var NAME_END_CHAR = ".0-9\u00B7\u0300-\u036F\u203F-\u2040-"; // Don't need escaping since to be put in a character class
+var parseModelRegexp = new RegExp("([" + NAME_START_CHAR + "][" + NAME_START_CHAR + NAME_END_CHAR + "]*)([*+?])? ?(([,|])?(.*))?");
 SAXParser.getPatternFromChildren = function(model, xmlFilter) {
     var brackets = /^\( ?(.*) ?\)([*+?]?)$/.exec(model);
     if (brackets != null) {
@@ -460,7 +534,7 @@ SAXParser.getPatternFromChildren = function(model, xmlFilter) {
         }
         return pattern;
     } else {
-        var parsedModel = /(\w+)([*+?])? ?(([,|])?(.*))?/.exec(model);
+        var parsedModel = parseModelRegexp.exec(model);
         var name = parsedModel[1];
         var operator = parsedModel[2];
         var separator = parsedModel[4];
@@ -544,11 +618,16 @@ SAXParser.prototype.elementDecl_augmenting = function(name, model) {
     return undefined;
 };
 
-SAXParser.whitespaceCollapse = function(type, value) {
-    value = value.replace(/[\t\n\r ]+/g, " ");
-    if (type !== "CDATA") {
+SAXParser.attWhitespaceNormalize = function(value) {
+    value = value.replace(/\r\n/g, " ");
+    return value.replace(/[\t\n\r]/g, " ");
+};
+
+SAXParser.attWhitespaceCollapse = function(type, value) {
+    if (type !== "string") {
+        value = value.replace(/\s+/g, " ");
         //removes leading and trailing space
-        value = value.replace(/^ /, "").replace(/ $/, "");
+        value = value.replace(/^\s/, "").replace(/\s$/, "");
     }
     return value;
 };
@@ -566,6 +645,23 @@ SAXParser.addAttributesIn = function(pattern, attributes) {
             SAXParser.addAttributesIn(pattern.pattern2, attributes);
         } else if (pattern instanceof Attribute) {
             attributes.push(pattern);
+        }
+    }
+};
+
+SAXParser.augmentAttributes = function(elementNode, pattern) {
+    if (pattern) {
+        if (pattern instanceof Choice) {
+            SAXParser.augmentAttributes(elementNode, pattern.pattern1);
+            SAXParser.augmentAttributes(elementNode, pattern.pattern2);
+        } else if (pattern instanceof Interleave) {
+            SAXParser.augmentAttributes(elementNode, pattern.pattern1);
+            SAXParser.augmentAttributes(elementNode, pattern.pattern2);
+        } else if (pattern instanceof Group) {
+            SAXParser.augmentAttributes(elementNode, pattern.pattern1);
+            SAXParser.augmentAttributes(elementNode, pattern.pattern2);
+        } else if (pattern instanceof Attribute) {
+            elementNode.addAttribute(pattern);
         }
     }
 };
@@ -590,13 +686,18 @@ SAXParser.prototype.attributeDecl_augmenting = function(eName, aName, type, mode
         SAXParser.addAttributesIn(element.pattern, alreadyDeclaredAttributes);
     }
     if (SAXParser.isAlreadyDeclared(aName, alreadyDeclaredAttributes)) {
-        //this.warning("attribute : [" + aName + "] under element : [" + eName + "] is already declared", this.parent.saxScanner);
+        this.warning("attribute : [" + aName + "] under element : [" + eName + "] is already declared", this.parent.saxScanner);
     } else {
-        var datatype = new Datatype("http://www.w3.org/2001/XMLSchema-datatypes", "string");
+        var datatype;
+        if (type === "NMTOKENS" || type === "NMTOKEN") {
+            datatype = new Datatype("http://www.w3.org/2001/XMLSchema-datatypes", type);
+        } else {
+            datatype = new Datatype("http://www.w3.org/2001/XMLSchema-datatypes", "string");
+        }
         var paramList = [];
         //if it is an enumeration
         if (/^\(.+\)$/.test(type)) {
-            var typeToParse = type.replace("^\(", "").replace("\)$", "");
+            var typeToParse = type.replace(/^\(/, "").replace(/\)$/, "");
             var values = typeToParse.split("|");
             var i = values.length;
             while (i--) {
@@ -610,7 +711,8 @@ SAXParser.prototype.attributeDecl_augmenting = function(eName, aName, type, mode
         if (mode !== "#REQUIRED") {
             //if a default value is provided
             if (value) {
-                attributePattern.defaultValue = new Value(datatype, value, this.context);
+                var valueNormalized = SAXParser.attWhitespaceCollapse(type, value);
+                attributePattern.defaultValue = new Value(datatype, valueNormalized, this.context);
             }
             attributePattern = new Choice(attributePattern, new Empty());
         }
@@ -627,30 +729,26 @@ SAXParser.prototype.attributeDecl_augmenting = function(eName, aName, type, mode
     return undefined;
 };
 
-/*
-sets the type of the attributes from DTD
-and the default values of non present attributes
-*/
-SAXParser.prototype.startElement_augmenting = function(namespaceURI, localName, qName, atts) {
+SAXParser.prototype.augmenting_elm = function(namespaceURI, localName, qName, atts) {
     var attributeNodes = [];
     for (var i = 0 ; i < atts.getLength() ; i++) {
         var newAtt = new AttributeNode(new QName(atts.getURI(i), atts.getLocalName(i)), atts.getValue(i));
         newAtt.atts = atts;
         newAtt.index = i;
         //may need normalization
-        newAtt.normalizeAttValue = this.normalizeAttValue;
+        newAtt.attWhitespaceCollapse = this.attWhitespaceCollapse;
         newAtt.setType = function(type) {
             this.atts.setType(this.index, type);
-            if (this.normalizeAttValue) {
+            if (this.attWhitespaceCollapse) {
                 var oldValue = this.atts.getValue(this.index);
-                var newValue = this.normalizeAttValue(type, oldValue);
+                var newValue = this.attWhitespaceCollapse(type, oldValue);
                 this.atts.setValue(this.index, newValue);
             }
             if (this.atts.setDeclared) {
                 this.atts.setDeclared(this.index, true);
                 this.atts.setSpecified(this.index, true);
             }
-        }
+        };
         attributeNodes.push(newAtt);
     }
     var newElement = new ElementNode(new QName(namespaceURI, localName), this.instanceContext, attributeNodes, []);
@@ -677,7 +775,7 @@ SAXParser.prototype.startElement_augmenting = function(namespaceURI, localName, 
             atts.setSpecified(index, false);
         }
         this.attributeNodes.push(new AttributeNode(qName, value));
-    }
+    };
     //this.childNode must be an ElementNode
     if (!this.childNode) {
         this.childNode = this.currentElementNode = newElement;
@@ -686,20 +784,54 @@ SAXParser.prototype.startElement_augmenting = function(namespaceURI, localName, 
         newElement.setParentNode(this.currentElementNode);
         this.currentElementNode = newElement;
     }
-    this.resultPattern = this.validatorFunctions.childDeriv(this.context, this.pattern, this.childNode);
+};
+
+/*
+sets the type of the attributes from DTD
+and the default values of non present attributes
+*/
+SAXParser.prototype.startElement_augmenting = function(namespaceURI, localName, qName, atts) {
+    //may not have any DTD
+    if (this.context) {
+        this.augmenting_elm(namespaceURI, localName, qName, atts);
+        //DTD augmentation
+        var pattern = this.elements[localName];
+        if (pattern) {
+            SAXParser.augmentAttributes(this.currentElementNode, pattern.pattern);
+        }
+    }
+    return this.parent.contentHandler.startElement.call(this.parent.contentHandler, namespaceURI, localName, qName, atts);
+};
+
+SAXParser.prototype.startElement_validating = function(namespaceURI, localName, qName, atts) {
+    //may not have any DTD
+    if (this.context) {
+        this.augmenting_elm(namespaceURI, localName, qName, atts);
+        this.resultPattern = this.validatorFunctions.childDeriv(this.context, this.pattern, this.childNode);
+        if (this.resultPattern instanceof NotAllowed && !(this.resultPattern instanceof MissingContent)) {
+            var str = "document not valid, message is : [" + this.resultPattern.message + "]";
+            if (this.resultPattern.pattern) {
+                str += ", expected was : [" + this.resultPattern.pattern.toHTML() + "], found is : [" + this.resultPattern.childNode.toHTML() + "]";
+            }
+            this.warning(str);
+        }
+    }
     return this.parent.contentHandler.startElement.call(this.parent.contentHandler, namespaceURI, localName, qName, atts);
 };
 
 SAXParser.prototype.endElement_augmenting = function(namespaceURI, localName, qName) {
-    if (this.currentElementNode.parentNode) {
+    if (this.currentElementNode && this.currentElementNode.parentNode) {
         this.currentElementNode = this.currentElementNode.parentNode;
     }
     return this.parent.contentHandler.endElement.call(this.parent.contentHandler, namespaceURI, localName, qName);
 };
 
 SAXParser.prototype.characters_augmenting = function(ch, start, length) {
-    var newText = new TextNode(ch);
-    this.currentElementNode.childNodes.push(newText);
+    //may not have any DTD
+    if (this.context) {
+        var newText = new TextNode(ch);
+        this.currentElementNode.childNodes.push(newText);
+    }
     return this.parent.contentHandler.characters.call(this.parent.contentHandler, ch, start, length);
 };
 
@@ -708,34 +840,47 @@ SAXParser.prototype.endDocument_validating = function() {
     if (this.pattern) {
         this.resultPattern = this.validatorFunctions.childDeriv(this.context, this.pattern, this.childNode);
         if (this.resultPattern instanceof NotAllowed) {
-            throw new SAXException("document not valid, message is : [" + this.resultPattern.message + "], expected was : [" + this.resultPattern.pattern.toHTML() + "], found is : [" + this.resultPattern.childNode.toHTML() + "]");
+            //may be string directly
+            var found = this.resultPattern.childNode;
+            if (found.toHTML) {
+                found = found.toHTML();
+            }
+            throw new SAXException("document not valid, message is : [" + this.resultPattern.message + "], expected was : [" + this.resultPattern.pattern.toHTML() + "], found is : [" + found + "]");
         }
     }
     return this.parent.contentHandler.endDocument.call(this.parent.contentHandler);
 };
 
 SAXParser.loadFile = function(fname) {
-	var xmlhttp = null;
-	if (window.XMLHttpRequest) {// code for Firefox, Opera, IE7, etc.
-		xmlhttp = new XMLHttpRequest();
-	} else if (window.ActiveXObject) {// code for IE6, IE5
-		xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-	}
-	if (xmlhttp !== null) {
-		xmlhttp.open("GET", fname, false);
-		xmlhttp.send(null);
-		if (xmlhttp.readyState === 4) {
-			return xmlhttp.responseText;
-		}
-	} else {
-		throw new SAXException("Your browser does not support XMLHTTP, the external entity with URL : [" + fname + "] will not be resolved");
-	}
+    var xmlhttp = null;
+    if (window.XMLHttpRequest) {// code for Firefox, Opera, IE7, etc.
+        xmlhttp = new XMLHttpRequest();
+    } else if (window.ActiveXObject) {// code for IE6, IE5
+        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+    if (xmlhttp !== null) {
+        xmlhttp.open("GET", fname, false);
+        xmlhttp.send(null);
+        if (xmlhttp.readyState === 4) {
+            return xmlhttp.responseText;
+        }
+    } else {
+        throw new SAXException("Your browser does not support XMLHTTP, the external entity with URL : [" + fname + "] will not be resolved");
+    }
     return false;
 };
 
 SAXParser.prototype.resolveEntity = function(entityName, publicId, baseURI, systemId) {
-    var txt = SAXParser.loadFile(baseURI + systemId);
+    var txt;
+    if (baseURI) {
+        txt = SAXParser.loadFile(baseURI + systemId);
+    //new version of method
+    } else {
+        txt = SAXParser.loadFile(systemId);
+    }
     if (txt) {
+        //http://www.w3.org/TR/xml/#sec-line-ends replace \r\n and \r by \n
+        txt = txt.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
         return txt;
     }
     return "";
@@ -749,25 +894,25 @@ SAXParser.getSAXParseException = function(message, locator, saxScanner) {
 SAXParser.prototype.warning = function(message, saxScanner) {
     var saxParseException = SAXParser.getSAXParseException(message, this.parent.contentHandler.locator, saxScanner);
     if (this.parent && this.parent.errorHandler) {
-        return this.parent.errorHandler.warning.call(this.parent.errorHandler, saxParseException);
+        this.parent.errorHandler.warning.call(this.parent.errorHandler, saxParseException);
     }
-    return undefined;
 };
 
 SAXParser.prototype.error = function(message, saxScanner) {
     var saxParseException = SAXParser.getSAXParseException(message, this.parent.contentHandler.locator, saxScanner);
+
     if (this.parent && this.parent.errorHandler) {
-        return this.parent.errorHandler.error.call(this.parent.errorHandler, saxParseException);
+
+        this.parent.errorHandler.error.call(this.parent.errorHandler, saxParseException);
     }
-    return undefined;
 };
 
 SAXParser.prototype.fatalError = function(message, saxScanner) {
     var saxParseException = SAXParser.getSAXParseException(message, this.parent.contentHandler.locator, saxScanner);
     if (this.parent && this.parent.errorHandler) {
-        return this.parent.errorHandler.fatalError.call(this.parent.errorHandler, saxParseException);
+        this.parent.errorHandler.fatalError.call(this.parent.errorHandler, saxParseException);
     }
-    return undefined;
+    throw saxParseException;
 };
 
 
@@ -866,11 +1011,19 @@ XMLReaderFactory.checkDependencies = function() {
             throw new SAXException("implementation of XMLFilterImpl, like XMLFilterImpls.js, not provided and could not be dynamically loaded because of exception", e4);
         }
     }
-    //Locator is optional
-    if (typeof that.LocatorImpl !== 'function') {
+    if (typeof that.Reader !== 'function') {
         try {
-            this.importJS("LocatorImpls.js");
-        } catch(e5) {}
+            this.importJS("Reader.js");
+        } catch(e4) {
+            throw new SAXException("implementation of Reader, like Reader.js, not provided and could not be dynamically loaded because of exception", e5);
+        }
+    }
+    if (typeof that.ReaderWrapper !== 'function') {
+        try {
+            this.importJS("ReaderWrapper.js");
+        } catch(e4) {
+            throw new SAXException("implementation of ReaderWrapper.js, like ReaderWrapper.js, not provided and could not be dynamically loaded because of exception", e6);
+        }
     }
 };
 
